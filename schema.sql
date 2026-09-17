@@ -125,6 +125,37 @@ CREATE TABLE IF NOT EXISTS admin_alerts (
   created_at REAL NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS investment_plans (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  tagline TEXT DEFAULT '',
+  icon TEXT DEFAULT '\ud83d\udcc8',
+  min_amount REAL NOT NULL DEFAULT 0,
+  max_amount REAL NOT NULL DEFAULT 0,
+  roi_percent REAL NOT NULL DEFAULT 0,
+  duration_days INTEGER NOT NULL DEFAULT 30,
+  risk TEXT DEFAULT 'Medium',
+  features TEXT DEFAULT '',
+  active INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at REAL NOT NULL,
+  updated_at REAL NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS plan_subscriptions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  plan_id INTEGER NOT NULL REFERENCES investment_plans(id),
+  plan_name TEXT NOT NULL,
+  amount REAL NOT NULL,
+  roi_percent REAL NOT NULL DEFAULT 0,
+  duration_days INTEGER NOT NULL DEFAULT 30,
+  expected_return REAL NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at REAL NOT NULL,
+  matures_at REAL DEFAULT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_tx_user ON transactions(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_loan_user ON loans(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_msg_user ON messages(user_id, created_at ASC);

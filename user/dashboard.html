@@ -57,9 +57,11 @@
           <button class="active" data-tab="overview">📊 Overview</button>
           <button data-tab="deposit">📥 Deposit</button>
           <button data-tab="withdraw">📤 Withdraw</button>
+          <button data-tab="plans">📈 Investment Plans</button>
           <button data-tab="transactions">🧾 Transactions</button>
           <button data-tab="loans">🏦 Loans</button>
           <button data-tab="referrals">👥 Referrals</button>
+          <button data-tab="support">💬 Support</button>
           <button data-tab="profile">👤 Profile &amp; Security</button>
         </div>
 
@@ -96,10 +98,8 @@
               <div class="row"><span>Reference</span><span id="depRef">—</span></div>
             </div>
             <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Crypto Deposit Addresses</h3>
-            <div class="kv">
-              <div class="row"><span>Bitcoin (BTC)</span><span class="copy-field"><code id="wBtc">—</code><button class="btn btn-primary btn-xs" onclick="copyEl('wBtc')">Copy</button></span></div>
-              <div class="row"><span>Ethereum (ETH)</span><span class="copy-field"><code id="wEth">—</code><button class="btn btn-primary btn-xs" onclick="copyEl('wEth')">Copy</button></span></div>
-              <div class="row"><span>Tether (USDT)</span><span class="copy-field"><code id="wUsdt">—</code><button class="btn btn-primary btn-xs" onclick="copyEl('wUsdt')">Copy</button></span></div>
+            <div class="kv" id="cryptoWallets">
+              <div class="row"><span>Loading wallets…</span><span>—</span></div>
             </div>
             <hr style="border:none;border-top:1px dashed #e6ecf3;margin:20px 0;" />
             <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Submit Deposit Request</h3>
@@ -188,6 +188,36 @@
           </div>
         </div>
 
+        <!-- INVESTMENT PLANS -->
+        <div class="tab-pane" id="tab-plans">
+          <div class="panel-body">
+            <p class="muted" style="margin-bottom:16px;">Choose an investment plan that matches your goals. Your chosen amount is invested from your available balance and your expected return is credited at maturity.</p>
+            <div id="plansGrid" class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));"></div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:24px 0;" />
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">My Investments</h3>
+            <div style="overflow-x:auto;">
+              <table class="data" id="subsTable">
+                <thead><tr><th>Date</th><th>Plan</th><th>Amount</th><th>ROI</th><th>Expected Return</th><th>Status</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUPPORT -->
+        <div class="tab-pane" id="tab-support">
+          <div class="panel-body">
+            <p class="muted" style="margin-bottom:16px;">Send a message to our customer support team. We typically respond within a few hours and you'll be notified by email and in your dashboard.</p>
+            <div id="supportThread" style="max-height:420px;overflow-y:auto;margin-bottom:18px;"></div>
+            <div class="form-group">
+              <label>Your Message</label>
+              <textarea id="supportMsg" rows="3" placeholder="Type your message to support…" style="width:100%;padding:10px 12px;border:1px solid #d7e0ea;border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+            </div>
+            <button class="btn btn-gold" onclick="sendSupport()">Send Message</button>
+            <div class="alert success" id="supportOk" style="margin-top:14px;"></div>
+          </div>
+        </div>
+
         <!-- PROFILE -->
         <div class="tab-pane" id="tab-profile">
           <div class="panel-body">
@@ -228,7 +258,7 @@
   <script src="../assets/js/app.js?v=3"></script>
   <script src="../assets/js/api.js?v=1"></script>
   <script>
-    var user = null, TX = [], LOANS = [], REF = null, WALLETS = [];
+    var user = null, TX = [], LOANS = [], REF = null, WALLETS = [], PLANS = [], SUBS = [], MSGS = [];
 
     function sym() { return (user && user.symbol) || '£'; }
     function money(n) { return EV.util.fmtMoney(n, sym()); }
@@ -247,13 +277,16 @@
       EV.api.me().then(function (u) {
         if (u.role === 'admin') { location.href = '../admin/dashboard.html'; return; }
         user = u;
-        return Promise.all([EV.api.transactions(), EV.api.loans(), EV.api.referrals(), EV.api.wallets()]);
+        return Promise.all([EV.api.transactions(), EV.api.loans(), EV.api.referrals(), EV.api.wallets(), EV.api.plans(), EV.api.subscriptions(), EV.api.messages()]);
       }).then(function (res) {
         if (!res) return;
         TX = (res[0] && res[0].transactions) || [];
         LOANS = (res[1] && res[1].loans) || [];
         REF = res[2] || null;
         WALLETS = (res[3] && res[3].wallets) || [];
+        PLANS = (res[4] && res[4].plans) || [];
+        SUBS = (res[5] && res[5].subscriptions) || [];
+        MSGS = (res[6] && res[6].messages) || [];
         render();
       }).catch(function (ex) {
         if (ex && ex.status === 401) { EV.api.logout(); location.href = '../login.html'; return; }
@@ -291,14 +324,18 @@
       document.getElementById('depBic').textContent = bank.bic || '—';
       document.getElementById('depRef').textContent = user.accountNumber || '—';
 
-      /* crypto wallets from server */
-      function walletAddr(net) {
-        var w = WALLETS.filter(function (x) { return String(x.network).toLowerCase().indexOf(net) !== -1; })[0];
-        return w ? w.address : '—';
+      /* crypto wallets from server (dynamic) */
+      var cw = document.getElementById('cryptoWallets');
+      if (cw) {
+        if (WALLETS.length) {
+          cw.innerHTML = WALLETS.map(function (w, i) {
+            var cid = 'cw' + i;
+            return '<div class="row"><span>' + esc(w.network) + '</span><span class="copy-field"><code id="' + cid + '">' + esc(w.address) + '</code><button class="btn btn-primary btn-xs" onclick="copyEl(\'' + cid + '\')">Copy</button></span></div>';
+          }).join('');
+        } else {
+          cw.innerHTML = '<div class="row"><span>No crypto wallets configured</span><span>—</span></div>';
+        }
       }
-      document.getElementById('wBtc').textContent = walletAddr('btc') !== '—' ? walletAddr('btc') : (EV.crypto && EV.crypto.W_BTC) || '—';
-      document.getElementById('wEth').textContent = walletAddr('eth') !== '—' ? walletAddr('eth') : (EV.crypto && EV.crypto.W_ETH) || '—';
-      document.getElementById('wUsdt').textContent = walletAddr('usdt') !== '—' ? walletAddr('usdt') : (EV.crypto && EV.crypto.W_USDT) || '—';
 
       /* profile */
       document.getElementById('pfName').textContent = user.name;
@@ -318,6 +355,78 @@
 
       renderTx();
       renderLoans();
+      renderPlans();
+      renderSubs();
+      renderSupport();
+    }
+
+    /* ---------- INVESTMENT PLANS ---------- */
+    function renderPlans() {
+      var grid = document.getElementById('plansGrid');
+      if (!grid) return;
+      grid.innerHTML = PLANS.map(function (p) {
+        var feats = String(p.features || '').split('|').filter(function (f) { return f.trim(); });
+        var maxTxt = p.max_amount ? money(p.max_amount) : 'No limit';
+        return '<div class="dash-card" style="text-align:left;padding:20px;">' +
+          '<div style="font-size:28px;margin-bottom:6px;">' + esc(p.icon || '📈') + '</div>' +
+          '<div style="font-family:var(--font-head);color:var(--brand-dark);font-size:18px;font-weight:700;">' + esc(p.name) + '</div>' +
+          '<div class="mini" style="margin:4px 0 12px;">' + esc(p.tagline || '') + '</div>' +
+          '<div style="font-size:26px;font-weight:800;color:#C9A227;">' + p.roi_percent + '% <span style="font-size:13px;color:var(--ink-soft);font-weight:500;">ROI</span></div>' +
+          '<div class="mini" style="margin:8px 0;">Min ' + money(p.min_amount) + ' · Max ' + maxTxt + '</div>' +
+          '<div class="mini" style="margin-bottom:10px;">Duration: ' + p.duration_days + ' days · Risk: ' + esc(p.risk) + '</div>' +
+          (feats.length ? '<ul style="margin:0 0 14px;padding-left:18px;font-size:12.5px;color:var(--ink-soft);">' + feats.map(function (f) { return '<li>' + esc(f.trim()) + '</li>'; }).join('') + '</ul>' : '') +
+          '<button class="btn btn-gold btn-sm" onclick="openSubscribe(\'' + p.id + '\')">Invest Now</button>' +
+          '</div>';
+      }).join('') || '<div class="empty">No investment plans available yet.</div>';
+    }
+
+    function openSubscribe(planId) {
+      var p = null;
+      for (var i = 0; i < PLANS.length; i++) if (String(PLANS[i].id) === String(planId)) p = PLANS[i];
+      if (!p) return;
+      var maxTxt = p.max_amount ? (' (max ' + money(p.max_amount) + ')') : '';
+      var amt = parseFloat(prompt('Invest in ' + p.name + '\nMinimum: ' + money(p.min_amount) + maxTxt + '\n\nEnter amount to invest:', p.min_amount));
+      if (!amt || amt <= 0) return;
+      EV.api.subscribe({ plan_id: p.id, amount: amt }).then(function (r) {
+        alert((r && r.message) || 'Investment activated.');
+        load();
+      }).catch(function (ex) { alert((ex && ex.message) || 'Could not invest.'); });
+    }
+
+    function renderSubs() {
+      var rows = SUBS.map(function (s) {
+        return '<tr><td>' + EV.util.fmtDate(s.created_at) + '</td><td>' + esc(s.plan_name) + '</td><td>' + money(s.amount) + '</td>' +
+          '<td>' + s.roi_percent + '%</td><td>' + money(s.expected_return) + '</td><td>' + pill(s.status) + '</td></tr>';
+      }).join('');
+      document.getElementById('subsTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="6" class="empty">No investments yet.</td></tr>';
+    }
+
+    /* ---------- SUPPORT ---------- */
+    function renderSupport() {
+      var el = document.getElementById('supportThread');
+      if (!el) return;
+      el.innerHTML = MSGS.map(function (m) {
+        var mine = m.sender === 'user';
+        return '<div style="display:flex;justify-content:' + (mine ? 'flex-end' : 'flex-start') + ';margin-bottom:10px;">' +
+          '<div style="max-width:75%;padding:10px 14px;border-radius:12px;font-size:13.5px;line-height:1.5;' +
+          (mine ? 'background:#0E4C92;color:#fff;border-bottom-right-radius:3px;' : 'background:#eef3f9;color:#0A1F33;border-bottom-left-radius:3px;') + '">' +
+          esc(m.body) + '<div style="font-size:10.5px;opacity:.7;margin-top:5px;">' + (mine ? 'You' : 'Support') + ' · ' + EV.util.fmtDateTime(m.created_at) + '</div>' +
+          '</div></div>';
+      }).join('') || '<div class="empty" style="text-align:center;padding:20px;">No messages yet. Start the conversation below.</div>';
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function sendSupport() {
+      var el = document.getElementById('supportMsg');
+      var ok = document.getElementById('supportOk');
+      ok.classList.remove('show');
+      var body = el.value.trim();
+      if (!body) { ok.className = 'alert error show'; ok.textContent = 'Type a message first.'; return; }
+      EV.api.sendMessage(body).then(function () {
+        el.value = '';
+        ok.className = 'alert success show'; ok.textContent = 'Message sent to support.';
+        load();
+      }).catch(function (ex) { ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Could not send.'; });
     }
 
     function renderTx() {

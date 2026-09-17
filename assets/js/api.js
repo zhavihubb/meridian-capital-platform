@@ -78,6 +78,9 @@
     notifications: function () { return request("GET", "/api/notifications"); },
     broadcasts: function () { return request("GET", "/api/broadcasts"); },
     rules: function () { return request("GET", "/api/rules"); },
+    plans: function () { return request("GET", "/api/plans"); },
+    subscriptions: function () { return request("GET", "/api/subscriptions"); },
+    subscribe: function (payload) { return request("POST", "/api/subscriptions", payload); },
     lead: function (payload) { return request("POST", "/api/leads", payload); },
 
     /* ---- admin ---- */
@@ -96,6 +99,12 @@
       declineTx: function (id, reason) { return request("POST", "/api/admin/transactions/" + id + "/decline", { reason: reason }); },
       reverseTx: function (id, reason) { return request("POST", "/api/admin/transactions/" + id + "/reverse", { reason: reason }); },
       createTx: function (payload) { return request("POST", "/api/admin/transactions", payload); },
+      randomTx: function (payload) { return request("POST", "/api/admin/transactions/random", payload); },
+      plans: function () { return request("GET", "/api/admin/plans"); },
+      addPlan: function (payload) { return request("POST", "/api/admin/plans", payload); },
+      updatePlan: function (id, payload) { return request("PUT", "/api/admin/plans/" + id, payload); },
+      deletePlan: function (id) { return request("DELETE", "/api/admin/plans/" + id); },
+      subscriptions: function () { return request("GET", "/api/admin/subscriptions"); },
       loans: function () { return request("GET", "/api/admin/loans"); },
       approveLoan: function (id) { return request("POST", "/api/admin/loans/" + id + "/approve"); },
       declineLoan: function (id, reason) { return request("POST", "/api/admin/loans/" + id + "/decline", { reason: reason }); },

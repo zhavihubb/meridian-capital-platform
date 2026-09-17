@@ -201,6 +201,26 @@ async function ensureSeed(env) {
       await run(env, 'INSERT INTO wallets (network,currency,address,active,updated_at) VALUES (?,?,?,?,?)', w[0], w[1], w[2], 1, nowMs());
     }
   }
+  const pc = await first(env, 'SELECT COUNT(*) c FROM investment_plans');
+  if (!pc || pc.c === 0) {
+    const plans = [
+      ['Starter Growth', 'Low-risk entry point for first-time investors', '\ud83c\udf31', 100, 4999, 4.5, 30, 'Low',
+        'Capital protection focus|Daily profit accrual|Withdraw anytime after maturity|Email & chat support', 1],
+      ['Balanced Income', 'Steady monthly income from diversified assets', '\u2696\ufe0f', 5000, 24999, 7.5, 60, 'Medium',
+        'Diversified UK & EU equities|Monthly profit payouts|Priority support|Free portfolio review', 2],
+      ['Premium Growth', 'Accelerated growth for experienced investors', '\ud83d\ude80', 25000, 99999, 11.0, 90, 'Medium-High',
+        'Growth equities & ETFs|Quarterly performance reports|Dedicated account manager|Reinvestment bonus', 3],
+      ['Elite Portfolio', 'High-yield managed portfolio with private markets', '\ud83d\udc51', 100000, 499999, 15.5, 180, 'High',
+        'Private equity & venture access|Bi-annual profit distribution|Personal wealth advisor|Concierge support', 4],
+      ['Institutional', 'Bespoke mandate for institutional & HNW clients', '\ud83c\udfe6', 500000, 0, 20.0, 365, 'High',
+        'Custom mandate & strategy|Dedicated portfolio team|Direct line to management|Tailored reporting', 5]
+    ];
+    for (const p of plans) {
+      await run(env, `INSERT INTO investment_plans (name,tagline,icon,min_amount,max_amount,roi_percent,duration_days,risk,features,active,sort_order,created_at,updated_at)
+                      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], 1, p[9], nowMs(), nowMs());
+    }
+  }
   const defaults = {
     smtp_host: '', smtp_port: '587', smtp_user: '', smtp_pass: '',
     smtp_from: 'Meridian Capital Partners <no-reply@meridianncapital.com>',
@@ -303,6 +323,9 @@ async function route(env, request, method, path, url) {
     });
   }
   if (method === 'GET' && path === '/rules') return json({ rules: RULES });
+  if (method === 'GET' && path === '/plans') {
+    return json({ plans: await all(env, 'SELECT * FROM investment_plans WHERE active=1 ORDER BY sort_order, id') });
+  }
   if (method === 'GET' && path === '/wallets') {
     return json({ wallets: await all(env, 'SELECT id,network,currency,address,active FROM wallets WHERE active=1 ORDER BY id') });
   }
@@ -380,6 +403,20 @@ async function route(env, request, method, path, url) {
       '\ud83c\udf81', { email: email, ctaLabel: 'View My Dashboard' });
     await adminAlert(env, 'signup', uid, 'New user registered: ' + full_name + ' (' + email + ') \u2014 ' + cur.flag + ' ' + cur.code);
     const siteUrl = await getSetting(env, 'site_url');
+    /* Notify admin by email of the new signup */
+    const adminEmail = (await getSetting(env, 'admin_notify_email')) || env.ADMIN_EMAIL || 'admin@meridianncapital.com';
+    await sendMail(env, adminEmail, 'New signup \u2014 ' + full_name,
+      emailTemplate('New Client Registered \ud83c\udf89',
+        '<p>A new client has just signed up on Meridian Capital Partners:</p>' +
+        '<table style="width:100%;border-collapse:collapse;margin:10px 0;">' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Name</td><td style="padding:6px 0;color:#fff;"><b>' + full_name + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Email</td><td style="padding:6px 0;color:#fff;">' + email + '</td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Country</td><td style="padding:6px 0;color:#fff;">' + cur.flag + ' ' + country + '</td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Currency</td><td style="padding:6px 0;color:#fff;">' + cur.code + '</td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Member ID</td><td style="padding:6px 0;color:#fff;">' + memberId + '</td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Welcome bonus</td><td style="padding:6px 0;color:#E7CE6B;"><b>' + fmt(bonusAmt, cur.symbol) + '</b></td></tr>' +
+        '</table>',
+        'Open Admin Dashboard', siteUrl + '/admin/dashboard.html'));
     await sendMail(env, email, 'Welcome to Meridian Capital Partners',
       emailTemplate('Welcome, ' + full_name.split(' ')[0] + ' \ud83d\udc4b',
         '<p>Your Meridian Capital Partners account is active and your ' + cur.code + ' dashboard is ready.</p>' +
@@ -568,6 +605,44 @@ async function route(env, request, method, path, url) {
     return json({ message: 'Loan application submitted. Our team will review it within 24\u201348 hours.', id: info.last_row_id, fee });
   }
 
+  /* ---------- Investment plans (user) ---------- */
+  if (method === 'GET' && path === '/plans') {
+    if (!me) return err('Not authenticated', 401);
+    return json({ plans: await all(env, 'SELECT * FROM investment_plans WHERE active=1 ORDER BY sort_order, id') });
+  }
+  if (method === 'GET' && path === '/subscriptions') {
+    if (!me) return err('Not authenticated', 401);
+    return json({ subscriptions: await all(env, 'SELECT * FROM plan_subscriptions WHERE user_id=? ORDER BY created_at DESC', me.id) });
+  }
+  if (method === 'POST' && path === '/subscriptions') {
+    if (!me) return err('Not authenticated', 401);
+    if (me.role === 'admin') return err('Admin accounts cannot subscribe to plans');
+    const b = await readBody(request);
+    const planId = Number(b.plan_id);
+    const amount = Number(b.amount);
+    if (!planId || !amount || amount <= 0) return err('Plan and a positive amount are required');
+    const plan = await first(env, 'SELECT * FROM investment_plans WHERE id=? AND active=1', planId);
+    if (!plan) return err('Plan not found', 404);
+    if (amount < plan.min_amount) return err('Minimum for ' + plan.name + ' is ' + fmt(plan.min_amount, '\u00a3'));
+    if (plan.max_amount && amount > plan.max_amount) return err('Maximum for ' + plan.name + ' is ' + fmt(plan.max_amount, '\u00a3'));
+    const u = await first(env, 'SELECT * FROM users WHERE id=?', me.id);
+    if (u.balance < amount) return err('Insufficient balance. Available: ' + fmt(u.balance, u.currency_symbol));
+    const expected = +(amount * (1 + plan.roi_percent / 100)).toFixed(2);
+    const balanceAfter = await adjustBalance(env, u.id, -amount);
+    const ref = genRef('INV');
+    await run(env, `INSERT INTO transactions (user_id,type,status,amount,reference,method,note,balance_after,created_at,processed_at,processed_by)
+              VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+      u.id, 'investment', 'approved', +amount.toFixed(2), ref, 'plan', 'Investment in ' + plan.name + ' plan', balanceAfter, nowMs(), nowMs(), null);
+    const info = await run(env, `INSERT INTO plan_subscriptions (user_id,plan_id,plan_name,amount,roi_percent,duration_days,expected_return,status,created_at,matures_at)
+                           VALUES (?,?,?,?,?,?,?,?,?,?)`,
+      u.id, plan.id, plan.name, +amount.toFixed(2), plan.roi_percent, plan.duration_days, expected, 'active', nowMs(), nowMs() + plan.duration_days * 86400000);
+    await notify(env, u.id, 'Investment plan activated \ud83d\udcc8',
+      'Your ' + fmt(amount, u.currency_symbol) + ' investment in the ' + plan.name + ' plan is now active. Expected return: ' + fmt(expected, u.currency_symbol) + ' over ' + plan.duration_days + ' days.',
+      '\ud83d\udcc8', { email: u.email });
+    await adminAlert(env, 'investment', u.id, 'New investment: ' + fmt(amount, u.currency_symbol) + ' in ' + plan.name + ' from ' + u.full_name);
+    return json({ message: 'Investment activated. Expected return ' + fmt(expected, u.currency_symbol) + ' over ' + plan.duration_days + ' days.', id: info.last_row_id, expected_return: expected });
+  }
+
   if (method === 'GET' && path === '/referrals') {
     if (!me) return err('Not authenticated', 401);
     const u = await first(env, 'SELECT * FROM users WHERE id=?', me.id);
@@ -599,6 +674,15 @@ async function route(env, request, method, path, url) {
     const info = await run(env, 'INSERT INTO messages (user_id,sender,body,created_at) VALUES (?,?,?,?)', u.id, 'user', body.slice(0, 2000), nowMs());
     const msg = await first(env, 'SELECT * FROM messages WHERE id=?', info.last_row_id);
     await adminAlert(env, 'support_message', u.id, '\ud83d\udcac ' + u.full_name + ': ' + body.slice(0, 120));
+    /* Notify admin by email as well */
+    const adminEmail = (await getSetting(env, 'admin_notify_email')) || env.ADMIN_EMAIL || 'admin@meridianncapital.com';
+    const siteUrl = await getSetting(env, 'site_url');
+    await sendMail(env, adminEmail, 'New support message from ' + u.full_name,
+      emailTemplate('New Support Message \ud83d\udcac',
+        '<p><b>' + u.full_name + '</b> (' + u.email + ') sent a message to customer support:</p>' +
+        '<p style="background:rgba(201,162,39,.12);border-left:3px solid #C9A227;padding:14px 16px;border-radius:8px;color:#E7CE6B;">' + body.slice(0, 500).replace(/</g, '&lt;') + '</p>' +
+        '<p>Reply from the admin dashboard \u2192 Messages tab.</p>',
+        'Open Admin Dashboard', siteUrl + '/admin/dashboard.html'));
     return json({ message: msg });
   }
 
@@ -778,15 +862,22 @@ async function adminRoute(env, request, method, seg, url, adminId) {
     if (!user_id || !type || !amt || amt <= 0) return err('User, type and a positive amount are required');
     const u = await first(env, "SELECT * FROM users WHERE id=? AND role='user'", user_id);
     if (!u) return err('User not found', 404);
-    if (['credit', 'debit', 'profit', 'bonus'].indexOf(type) === -1) return err('Type must be credit, debit, profit or bonus');
-    const delta = (type === 'debit') ? -amt : amt;
+    if (['credit', 'debit', 'profit', 'bonus', 'deposit', 'withdrawal', 'investment', 'referral'].indexOf(type) === -1) return err('Invalid transaction type');
+    const delta = (type === 'debit' || type === 'withdrawal') ? -amt : amt;
     if (u.balance + delta < 0) return err('Debit exceeds user balance');
     const balanceAfter = await adjustBalance(env, u.id, delta);
     const ref = genRef(type === 'profit' ? 'PRF' : (type === 'bonus' ? 'BON' : type.toUpperCase().slice(0, 3)));
+    /* Optional custom date (ms epoch or ISO string) for back-dated transactions */
+    let createdAt = nowMs();
+    if (b.created_at) {
+      const parsed = typeof b.created_at === 'number' ? b.created_at : Date.parse(b.created_at);
+      if (!isNaN(parsed)) createdAt = parsed;
+    }
+    const status = String(b.status || 'approved');
     await run(env, `INSERT INTO transactions (user_id,type,status,amount,reference,method,note,balance_after,created_at,processed_at,processed_by)
-              VALUES (?,?,?,?,?,?,?,?,?,?,?)`, u.id, type, 'approved', +amt.toFixed(2), ref, 'admin', note, balanceAfter, nowMs(), nowMs(), adminId);
+              VALUES (?,?,?,?,?,?,?,?,?,?,?)`, u.id, type, status, +amt.toFixed(2), ref, 'admin', note, balanceAfter, createdAt, nowMs(), adminId);
     await notify(env, u.id, 'Account updated by Meridian Capital Partners',
-      (type === 'debit' ? 'A debit of ' : 'A credit of ') + fmt(amt, u.currency_symbol) + ' was applied to your account.' + (note ? ' Note: ' + note : '') + ' New balance: ' + fmt(balanceAfter, u.currency_symbol) + '.',
+      (delta < 0 ? 'A debit of ' : 'A credit of ') + fmt(amt, u.currency_symbol) + ' was applied to your account.' + (note ? ' Note: ' + note : '') + ' New balance: ' + fmt(balanceAfter, u.currency_symbol) + '.',
       '\ud83e\uddde', { email: u.email });
     const siteUrl = await getSetting(env, 'site_url');
     await sendMail(env, u.email, 'Account transaction created',
@@ -795,6 +886,116 @@ async function adminRoute(env, request, method, seg, url, adminId) {
         '<p>New balance: <b style="color:#E7CE6B;">' + fmt(balanceAfter, u.currency_symbol) + '</b></p>',
         'Open Dashboard', siteUrl + '/user/dashboard.html'));
     return json({ message: 'Transaction created', reference: ref, balance_after: balanceAfter });
+  }
+
+  /* ---------- Random transaction generator ----------
+     Generates N random transactions for a user (or all users) spread
+     across a chosen year range, as far back as requested. */
+  if (method === 'POST' && sub === 'transactions' && seg[2] === 'random') {
+    const b = await readBody(request);
+    const user_id = Number(b.user_id) || 0;
+    const count = Math.min(Math.max(parseInt(b.count, 10) || 10, 1), 500);
+    const fromYear = parseInt(b.from_year, 10) || (new Date().getFullYear() - 3);
+    const toYear = parseInt(b.to_year, 10) || new Date().getFullYear();
+    const types = Array.isArray(b.types) && b.types.length ? b.types : ['deposit', 'profit', 'bonus', 'withdrawal'];
+    const minAmt = Number(b.min_amount) || 50;
+    const maxAmt = Number(b.max_amount) || 5000;
+    const applyBalance = b.apply_balance !== false; /* default true */
+    const y1 = Math.min(fromYear, toYear), y2 = Math.max(fromYear, toYear);
+    const startMs = Date.UTC(y1, 0, 1, 0, 0, 0);
+    const endMs = Date.UTC(y2, 11, 31, 23, 59, 59);
+    if (endMs <= startMs) return err('Invalid year range');
+
+    let targets;
+    if (user_id) {
+      const u = await first(env, "SELECT * FROM users WHERE id=? AND role='user'", user_id);
+      if (!u) return err('User not found', 404);
+      targets = [u];
+    } else {
+      targets = await all(env, "SELECT * FROM users WHERE role='user'");
+      if (!targets.length) return err('No users found');
+    }
+
+    const rnd = (a, z) => a + Math.random() * (z - a);
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    let created = 0;
+    const notes = {
+      deposit: ['Bank transfer received', 'Faster Payments deposit', 'Card deposit', 'Crypto deposit confirmed'],
+      profit: ['Portfolio profit distribution', 'Monthly investment return', 'Trading profit credited', 'Dividend payout'],
+      bonus: ['Loyalty bonus', 'Promotional credit', 'Referral milestone bonus', 'Seasonal bonus'],
+      withdrawal: ['Withdrawal to bank account', 'Payout processed', 'Withdrawal to crypto wallet'],
+      investment: ['Investment plan contribution', 'Portfolio top-up'],
+      referral: ['Referral reward']
+    };
+    for (const u of targets) {
+      for (let i = 0; i < count; i++) {
+        const type = pick(types);
+        const amt = +rnd(minAmt, maxAmt).toFixed(2);
+        const ts = Math.floor(rnd(startMs, endMs));
+        const ref = genRef(type.toUpperCase().slice(0, 3));
+        const note = pick(notes[type] || ['Account activity']);
+        let balanceAfter = null;
+        if (applyBalance) {
+          const delta = (type === 'debit' || type === 'withdrawal') ? -amt : amt;
+          if (delta < 0) {
+            const cur = await first(env, 'SELECT balance FROM users WHERE id=?', u.id);
+            if ((cur ? cur.balance : 0) + delta < 0) continue; /* skip: would overdraw */
+          }
+          balanceAfter = await adjustBalance(env, u.id, delta);
+        }
+        await run(env, `INSERT INTO transactions (user_id,type,status,amount,reference,method,note,balance_after,created_at,processed_at,processed_by)
+                  VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+          u.id, type, 'approved', amt, ref, 'system', note, balanceAfter, ts, ts, adminId);
+        created++;
+      }
+    }
+    await adminAlert(env, 'random_tx', user_id || null,
+      'Generated ' + created + ' random transactions (' + y1 + '\u2013' + y2 + ') for ' + (user_id ? '1 user' : targets.length + ' users'));
+    return json({ message: 'Generated ' + created + ' transactions across ' + targets.length + ' user(s) for ' + y1 + '\u2013' + y2 + '.', created, users: targets.length });
+  }
+
+  /* ---------- Investment plans (admin) ---------- */
+  if (method === 'GET' && sub === 'plans') {
+    return json({ plans: await all(env, 'SELECT * FROM investment_plans ORDER BY sort_order, id') });
+  }
+  if (method === 'POST' && sub === 'plans' && seg.length === 2) {
+    const b = await readBody(request);
+    const name = String(b.name || '').trim();
+    if (!name) return err('Plan name is required');
+    const info = await run(env, `INSERT INTO investment_plans (name,tagline,icon,min_amount,max_amount,roi_percent,duration_days,risk,features,active,sort_order,created_at,updated_at)
+                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      name, String(b.tagline || ''), String(b.icon || '\ud83d\udcc8'), Number(b.min_amount) || 0, Number(b.max_amount) || 0,
+      Number(b.roi_percent) || 0, parseInt(b.duration_days, 10) || 30, String(b.risk || 'Medium'),
+      String(b.features || ''), b.active === false ? 0 : 1, parseInt(b.sort_order, 10) || 0, nowMs(), nowMs());
+    return json({ message: 'Plan created', id: info.last_row_id });
+  }
+  if (method === 'PUT' && sub === 'plans' && seg.length === 3) {
+    const p = await first(env, 'SELECT * FROM investment_plans WHERE id=?', seg[2]);
+    if (!p) return err('Plan not found', 404);
+    const b = await readBody(request);
+    await run(env, `UPDATE investment_plans SET name=?,tagline=?,icon=?,min_amount=?,max_amount=?,roi_percent=?,duration_days=?,risk=?,features=?,active=?,sort_order=?,updated_at=? WHERE id=?`,
+      b.name !== undefined ? String(b.name) : p.name,
+      b.tagline !== undefined ? String(b.tagline) : p.tagline,
+      b.icon !== undefined ? String(b.icon) : p.icon,
+      b.min_amount !== undefined ? Number(b.min_amount) : p.min_amount,
+      b.max_amount !== undefined ? Number(b.max_amount) : p.max_amount,
+      b.roi_percent !== undefined ? Number(b.roi_percent) : p.roi_percent,
+      b.duration_days !== undefined ? parseInt(b.duration_days, 10) : p.duration_days,
+      b.risk !== undefined ? String(b.risk) : p.risk,
+      b.features !== undefined ? String(b.features) : p.features,
+      b.active !== undefined ? (b.active ? 1 : 0) : p.active,
+      b.sort_order !== undefined ? parseInt(b.sort_order, 10) : p.sort_order,
+      nowMs(), p.id);
+    return json({ message: 'Plan updated' });
+  }
+  if (method === 'DELETE' && sub === 'plans' && seg.length === 3) {
+    const p = await first(env, 'SELECT * FROM investment_plans WHERE id=?', seg[2]);
+    if (!p) return err('Plan not found', 404);
+    await run(env, 'DELETE FROM investment_plans WHERE id=?', p.id);
+    return json({ message: 'Plan deleted' });
+  }
+  if (method === 'GET' && sub === 'subscriptions') {
+    return json({ subscriptions: await all(env, `SELECT s.*, u.full_name, u.email, u.currency_symbol FROM plan_subscriptions s JOIN users u ON u.id=s.user_id ORDER BY s.created_at DESC LIMIT 400`) });
   }
 
   if (method === 'GET' && sub === 'loans') {

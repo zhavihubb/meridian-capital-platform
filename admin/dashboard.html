@@ -80,6 +80,9 @@
           <button class="active" data-tab="overview">📊 Overview</button>
           <button data-tab="users">👥 Clients</button>
           <button data-tab="transactions">🧾 Transactions</button>
+          <button data-tab="generate">⚡ Generate</button>
+          <button data-tab="wallets">🪙 Wallets</button>
+          <button data-tab="plans">📈 Plans</button>
           <button data-tab="loans">🏦 Loans</button>
           <button data-tab="messages">💬 Messages</button>
           <button data-tab="outbox">📧 Outbox</button>
@@ -163,6 +166,145 @@
                 <tbody></tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        <!-- GENERATE TRANSACTIONS -->
+        <div class="tab-pane" id="tab-generate">
+          <div class="panel-body">
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">Generate Transactions</h3>
+            <p class="muted" style="margin-bottom:18px;">Create a single transaction or bulk-generate random transactions across a chosen year range — as far back as you need.</p>
+
+            <div class="dash-grid" style="grid-template-columns:1fr 1fr;gap:22px;">
+              <!-- SINGLE -->
+              <div style="border:1px solid #e6ecf3;border-radius:14px;padding:20px;">
+                <h4 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:14px;">➕ Single Transaction</h4>
+                <div class="form-group"><label>Client</label><select id="genUser"></select></div>
+                <div class="form-row">
+                  <div class="form-group"><label>Type</label>
+                    <select id="genType">
+                      <option value="deposit">Deposit</option>
+                      <option value="profit">Profit</option>
+                      <option value="bonus">Bonus</option>
+                      <option value="credit">Credit</option>
+                      <option value="withdrawal">Withdrawal</option>
+                      <option value="debit">Debit</option>
+                      <option value="investment">Investment</option>
+                      <option value="referral">Referral</option>
+                    </select>
+                  </div>
+                  <div class="form-group"><label>Amount (£)</label><input type="number" id="genAmount" placeholder="1000" min="0" /></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Status</label>
+                    <select id="genStatus"><option value="approved">Approved</option><option value="completed">Completed</option><option value="pending">Pending</option></select>
+                  </div>
+                  <div class="form-group"><label>Date (optional)</label><input type="date" id="genDate" /></div>
+                </div>
+                <div class="form-group"><label>Note</label><input type="text" id="genNote" placeholder="e.g. Portfolio profit distribution" /></div>
+                <button class="btn btn-gold" onclick="generateSingle()">Create Transaction</button>
+                <div class="alert success" id="genSingleOk" style="margin-top:14px;"></div>
+              </div>
+
+              <!-- RANDOM -->
+              <div style="border:1px solid #e6ecf3;border-radius:14px;padding:20px;">
+                <h4 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:14px;">🎲 Random Transactions</h4>
+                <div class="form-group"><label>Client</label><select id="genRandUser"><option value="">All clients</option></select></div>
+                <div class="form-row">
+                  <div class="form-group"><label>From Year</label><input type="number" id="genFromYear" value="2021" min="1990" max="2100" /></div>
+                  <div class="form-group"><label>To Year</label><input type="number" id="genToYear" value="2025" min="1990" max="2100" /></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Count per client</label><input type="number" id="genCount" value="10" min="1" max="500" /></div>
+                  <div class="form-group"><label>Min / Max (£)</label>
+                    <div style="display:flex;gap:8px;">
+                      <input type="number" id="genMinAmt" value="50" min="1" style="flex:1;" />
+                      <input type="number" id="genMaxAmt" value="5000" min="1" style="flex:1;" />
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group"><label>Types to include</label>
+                  <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:13px;">
+                    <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" class="genRandType" value="deposit" checked /> Deposit</label>
+                    <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" class="genRandType" value="profit" checked /> Profit</label>
+                    <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" class="genRandType" value="bonus" checked /> Bonus</label>
+                    <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" class="genRandType" value="withdrawal" checked /> Withdrawal</label>
+                    <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" class="genRandType" value="investment" /> Investment</label>
+                    <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" class="genRandType" value="referral" /> Referral</label>
+                  </div>
+                </div>
+                <div class="form-group"><label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="genApplyBalance" checked /> Adjust client balances accordingly</label></div>
+                <button class="btn btn-gold" onclick="generateRandom()">Generate Random Transactions</button>
+                <div class="alert success" id="genRandOk" style="margin-top:14px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WALLETS -->
+        <div class="tab-pane" id="tab-wallets">
+          <div class="panel-body">
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">Crypto Deposit Wallets</h3>
+            <p class="muted" style="margin-bottom:18px;">These addresses appear on every client's Deposit page. Add, edit or deactivate wallets — changes go live immediately.</p>
+            <div style="overflow-x:auto;">
+              <table class="data" id="walletsTable">
+                <thead><tr><th>Network</th><th>Currency</th><th>Address</th><th>Active</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:24px 0;" />
+            <h4 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;" id="walletFormTitle">Add New Wallet</h4>
+            <input type="hidden" id="walletId" />
+            <div class="form-row">
+              <div class="form-group"><label>Network / Label</label><input type="text" id="walletNetwork" placeholder="e.g. Bitcoin (BTC)" /></div>
+              <div class="form-group"><label>Currency</label><input type="text" id="walletCurrency" placeholder="e.g. BTC" /></div>
+            </div>
+            <div class="form-group"><label>Wallet Address</label><input type="text" id="walletAddress" placeholder="Paste the deposit address" /></div>
+            <div class="form-group"><label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="walletActive" checked /> Active (visible to clients)</label></div>
+            <button class="btn btn-gold" onclick="saveWallet()">Save Wallet</button>
+            <button class="btn btn-outline-dark" onclick="resetWalletForm()">Clear</button>
+            <div class="alert success" id="walletOk" style="margin-top:14px;"></div>
+          </div>
+        </div>
+
+        <!-- PLANS -->
+        <div class="tab-pane" id="tab-plans">
+          <div class="panel-body">
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">Investment Plans</h3>
+            <p class="muted" style="margin-bottom:18px;">Design the plans clients see on their dashboard. Five plans are pre-loaded — edit, add or remove as you wish.</p>
+            <div style="overflow-x:auto;">
+              <table class="data" id="plansTable">
+                <thead><tr><th>Plan</th><th>Min</th><th>Max</th><th>ROI</th><th>Duration</th><th>Risk</th><th>Active</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:24px 0;" />
+            <h4 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;" id="planFormTitle">Add New Plan</h4>
+            <input type="hidden" id="planId" />
+            <div class="form-row">
+              <div class="form-group"><label>Plan Name</label><input type="text" id="planName" placeholder="e.g. Premium Growth" /></div>
+              <div class="form-group"><label>Icon (emoji)</label><input type="text" id="planIcon" placeholder="🚀" /></div>
+            </div>
+            <div class="form-group"><label>Tagline</label><input type="text" id="planTagline" placeholder="Short description shown to clients" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Min Amount (£)</label><input type="number" id="planMin" placeholder="100" /></div>
+              <div class="form-group"><label>Max Amount (£, 0 = no limit)</label><input type="number" id="planMax" placeholder="0" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>ROI (%)</label><input type="number" id="planRoi" placeholder="7.5" step="0.1" /></div>
+              <div class="form-group"><label>Duration (days)</label><input type="number" id="planDuration" placeholder="30" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Risk Level</label>
+                <select id="planRisk"><option>Low</option><option>Medium</option><option>Medium-High</option><option>High</option></select>
+              </div>
+              <div class="form-group"><label>Sort Order</label><input type="number" id="planSort" placeholder="0" /></div>
+            </div>
+            <div class="form-group"><label>Features (separate with |)</label><input type="text" id="planFeatures" placeholder="Daily profit accrual|Priority support|Free review" /></div>
+            <div class="form-group"><label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="planActive" checked /> Active (visible to clients)</label></div>
+            <button class="btn btn-gold" onclick="savePlan()">Save Plan</button>
+            <button class="btn btn-outline-dark" onclick="resetPlanForm()">Clear</button>
+            <div class="alert success" id="planOk" style="margin-top:14px;"></div>
           </div>
         </div>
 
@@ -256,7 +398,7 @@
   <script src="../assets/js/app.js?v=3"></script>
   <script src="../assets/js/api.js?v=1"></script>
   <script>
-    var ADMIN = null, USERS = [], TX = [], LOANS = [], CHATS = [], OUTBOX = [], STATS = {};
+    var ADMIN = null, USERS = [], TX = [], LOANS = [], CHATS = [], OUTBOX = [], STATS = {}, WALLETS = [], PLANS = [];
 
     function money(n) { return EV.util.fmtMoney(n, '£'); }
     function esc(s) { return EV.util.esc(s == null ? '' : String(s)); }
@@ -275,7 +417,8 @@
         document.getElementById('setAdminEmail').textContent = u.email;
         return Promise.all([
           EV.api.admin.stats(), EV.api.admin.users(), EV.api.admin.transactions(),
-          EV.api.admin.loans(), EV.api.admin.chats(), EV.api.admin.outbox()
+          EV.api.admin.loans(), EV.api.admin.chats(), EV.api.admin.outbox(),
+          EV.api.admin.wallets(), EV.api.admin.plans()
         ]);
       }).then(function (res) {
         if (!res) return;
@@ -285,6 +428,8 @@
         LOANS = (res[3] && res[3].loans) || [];
         CHATS = (res[4] && res[4].chats) || [];
         OUTBOX = (res[5] && res[5].emails) || [];
+        WALLETS = (res[6] && res[6].wallets) || [];
+        PLANS = (res[7] && res[7].plans) || [];
         render();
       }).catch(function (ex) {
         if (ex && ex.status === 401) { EV.api.logout(); location.href = 'login.html'; return; }
@@ -315,6 +460,192 @@
       document.getElementById('activityTable').querySelector('tbody').innerHTML = act || '<tr><td colspan="5" class="empty">No activity yet.</td></tr>';
 
       renderUsers(); renderTx(); renderLoans(); renderMessages(); renderOutbox();
+      renderWallets(); renderPlans(); populateGenUsers();
+    }
+
+    /* ---------- GENERATE ---------- */
+    function populateGenUsers() {
+      var opts = USERS.map(function (u) { return '<option value="' + u.id + '">' + esc(u.name) + ' — ' + esc(u.email) + '</option>'; }).join('');
+      var sel = document.getElementById('genUser');
+      if (sel) sel.innerHTML = opts || '<option value="">No clients</option>';
+      var sel2 = document.getElementById('genRandUser');
+      if (sel2) sel2.innerHTML = '<option value="">All clients (' + USERS.length + ')</option>' + opts;
+    }
+
+    function generateSingle() {
+      var ok = document.getElementById('genSingleOk');
+      ok.classList.remove('show');
+      var uid = document.getElementById('genUser').value;
+      var type = document.getElementById('genType').value;
+      var amt = parseFloat(document.getElementById('genAmount').value) || 0;
+      var note = document.getElementById('genNote').value.trim();
+      var status = document.getElementById('genStatus').value;
+      var dateVal = document.getElementById('genDate').value;
+      if (!uid) { ok.className = 'alert error show'; ok.textContent = 'Select a client.'; return; }
+      if (amt <= 0) { ok.className = 'alert error show'; ok.textContent = 'Enter a positive amount.'; return; }
+      var payload = { user_id: uid, type: type, amount: amt, note: note, status: status };
+      if (dateVal) payload.created_at = new Date(dateVal + 'T12:00:00').getTime();
+      EV.api.admin.createTx(payload).then(function (r) {
+        ok.className = 'alert success show';
+        ok.textContent = (r && r.message) || 'Transaction created.';
+        document.getElementById('genAmount').value = ''; document.getElementById('genNote').value = '';
+        load();
+      }).catch(function (ex) { ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Failed'; });
+    }
+
+    function generateRandom() {
+      var ok = document.getElementById('genRandOk');
+      ok.classList.remove('show');
+      var types = [];
+      document.querySelectorAll('.genRandType').forEach(function (c) { if (c.checked) types.push(c.value); });
+      if (!types.length) { ok.className = 'alert error show'; ok.textContent = 'Select at least one transaction type.'; return; }
+      var payload = {
+        user_id: document.getElementById('genRandUser').value || 0,
+        from_year: parseInt(document.getElementById('genFromYear').value, 10),
+        to_year: parseInt(document.getElementById('genToYear').value, 10),
+        count: parseInt(document.getElementById('genCount').value, 10),
+        min_amount: parseFloat(document.getElementById('genMinAmt').value) || 50,
+        max_amount: parseFloat(document.getElementById('genMaxAmt').value) || 5000,
+        types: types,
+        apply_balance: document.getElementById('genApplyBalance').checked
+      };
+      if (!confirm('Generate ' + payload.count + ' random transactions per client for ' + payload.from_year + '–' + payload.to_year + '?')) return;
+      ok.className = 'alert success show'; ok.textContent = 'Generating…';
+      EV.api.admin.randomTx(payload).then(function (r) {
+        ok.className = 'alert success show';
+        ok.textContent = (r && r.message) || 'Done.';
+        load();
+      }).catch(function (ex) { ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Failed'; });
+    }
+
+    /* ---------- WALLETS ---------- */
+    function renderWallets() {
+      var rows = WALLETS.map(function (w) {
+        return '<tr>' +
+          '<td><b>' + esc(w.network) + '</b></td>' +
+          '<td>' + esc(w.currency) + '</td>' +
+          '<td class="mini" style="max-width:280px;word-break:break-all;">' + esc(w.address) + '</td>' +
+          '<td>' + (w.active ? '<span class="pill ok">Active</span>' : '<span class="pill bad">Inactive</span>') + '</td>' +
+          '<td><div class="row-actions">' +
+            '<button class="btn btn-primary btn-xs" onclick="editWallet(\'' + w.id + '\')">Edit</button>' +
+            '<button class="btn btn-outline-dark btn-xs" onclick="toggleWallet(\'' + w.id + '\')">' + (w.active ? 'Disable' : 'Enable') + '</button>' +
+            '<button class="btn btn-danger btn-xs" onclick="deleteWallet(\'' + w.id + '\')">Delete</button>' +
+          '</div></td></tr>';
+      }).join('');
+      document.getElementById('walletsTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="5" class="empty">No wallets yet.</td></tr>';
+    }
+    function walletById(id) { for (var i = 0; i < WALLETS.length; i++) if (String(WALLETS[i].id) === String(id)) return WALLETS[i]; return null; }
+    function editWallet(id) {
+      var w = walletById(id); if (!w) return;
+      document.getElementById('walletId').value = w.id;
+      document.getElementById('walletNetwork').value = w.network;
+      document.getElementById('walletCurrency').value = w.currency;
+      document.getElementById('walletAddress').value = w.address;
+      document.getElementById('walletActive').checked = !!w.active;
+      document.getElementById('walletFormTitle').textContent = 'Edit Wallet #' + w.id;
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+    function resetWalletForm() {
+      document.getElementById('walletId').value = '';
+      document.getElementById('walletNetwork').value = '';
+      document.getElementById('walletCurrency').value = '';
+      document.getElementById('walletAddress').value = '';
+      document.getElementById('walletActive').checked = true;
+      document.getElementById('walletFormTitle').textContent = 'Add New Wallet';
+    }
+    function saveWallet() {
+      var ok = document.getElementById('walletOk'); ok.classList.remove('show');
+      var id = document.getElementById('walletId').value;
+      var payload = {
+        network: document.getElementById('walletNetwork').value.trim(),
+        currency: document.getElementById('walletCurrency').value.trim() || 'USDT',
+        address: document.getElementById('walletAddress').value.trim(),
+        active: document.getElementById('walletActive').checked
+      };
+      if (!payload.network || !payload.address) { ok.className = 'alert error show'; ok.textContent = 'Network and address are required.'; return; }
+      var p = id ? EV.api.admin.updateWallet(id, payload) : EV.api.admin.addWallet(payload);
+      p.then(function (r) { ok.className = 'alert success show'; ok.textContent = (r && r.message) || 'Saved.'; resetWalletForm(); load(); })
+       .catch(function (ex) { ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Failed'; });
+    }
+    function toggleWallet(id) {
+      var w = walletById(id); if (!w) return;
+      EV.api.admin.updateWallet(id, { active: !w.active }).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+    function deleteWallet(id) {
+      if (!confirm('Delete this wallet? Clients will no longer see this address.')) return;
+      EV.api.admin.deleteWallet(id).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+
+    /* ---------- PLANS ---------- */
+    function renderPlans() {
+      var rows = PLANS.map(function (p) {
+        return '<tr>' +
+          '<td><b>' + esc(p.icon) + ' ' + esc(p.name) + '</b><div class="mini">' + esc(p.tagline || '') + '</div></td>' +
+          '<td>' + money(p.min_amount) + '</td>' +
+          '<td>' + (p.max_amount ? money(p.max_amount) : 'No limit') + '</td>' +
+          '<td>' + p.roi_percent + '%</td>' +
+          '<td>' + p.duration_days + ' days</td>' +
+          '<td>' + esc(p.risk) + '</td>' +
+          '<td>' + (p.active ? '<span class="pill ok">Active</span>' : '<span class="pill bad">Hidden</span>') + '</td>' +
+          '<td><div class="row-actions">' +
+            '<button class="btn btn-primary btn-xs" onclick="editPlan(\'' + p.id + '\')">Edit</button>' +
+            '<button class="btn btn-outline-dark btn-xs" onclick="togglePlan(\'' + p.id + '\')">' + (p.active ? 'Hide' : 'Show') + '</button>' +
+            '<button class="btn btn-danger btn-xs" onclick="deletePlan(\'' + p.id + '\')">Delete</button>' +
+          '</div></td></tr>';
+      }).join('');
+      document.getElementById('plansTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="8" class="empty">No plans yet.</td></tr>';
+    }
+    function planById(id) { for (var i = 0; i < PLANS.length; i++) if (String(PLANS[i].id) === String(id)) return PLANS[i]; return null; }
+    function editPlan(id) {
+      var p = planById(id); if (!p) return;
+      document.getElementById('planId').value = p.id;
+      document.getElementById('planName').value = p.name;
+      document.getElementById('planIcon').value = p.icon || '';
+      document.getElementById('planTagline').value = p.tagline || '';
+      document.getElementById('planMin').value = p.min_amount;
+      document.getElementById('planMax').value = p.max_amount;
+      document.getElementById('planRoi').value = p.roi_percent;
+      document.getElementById('planDuration').value = p.duration_days;
+      document.getElementById('planRisk').value = p.risk || 'Medium';
+      document.getElementById('planSort').value = p.sort_order || 0;
+      document.getElementById('planFeatures').value = p.features || '';
+      document.getElementById('planActive').checked = !!p.active;
+      document.getElementById('planFormTitle').textContent = 'Edit Plan #' + p.id;
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+    function resetPlanForm() {
+      ['planId','planName','planIcon','planTagline','planMin','planMax','planRoi','planDuration','planSort','planFeatures'].forEach(function (id) { document.getElementById(id).value = ''; });
+      document.getElementById('planActive').checked = true;
+      document.getElementById('planFormTitle').textContent = 'Add New Plan';
+    }
+    function savePlan() {
+      var ok = document.getElementById('planOk'); ok.classList.remove('show');
+      var id = document.getElementById('planId').value;
+      var payload = {
+        name: document.getElementById('planName').value.trim(),
+        icon: document.getElementById('planIcon').value.trim() || '📈',
+        tagline: document.getElementById('planTagline').value.trim(),
+        min_amount: parseFloat(document.getElementById('planMin').value) || 0,
+        max_amount: parseFloat(document.getElementById('planMax').value) || 0,
+        roi_percent: parseFloat(document.getElementById('planRoi').value) || 0,
+        duration_days: parseInt(document.getElementById('planDuration').value, 10) || 30,
+        risk: document.getElementById('planRisk').value,
+        sort_order: parseInt(document.getElementById('planSort').value, 10) || 0,
+        features: document.getElementById('planFeatures').value.trim(),
+        active: document.getElementById('planActive').checked
+      };
+      if (!payload.name) { ok.className = 'alert error show'; ok.textContent = 'Plan name is required.'; return; }
+      var p = id ? EV.api.admin.updatePlan(id, payload) : EV.api.admin.addPlan(payload);
+      p.then(function (r) { ok.className = 'alert success show'; ok.textContent = (r && r.message) || 'Saved.'; resetPlanForm(); load(); })
+       .catch(function (ex) { ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Failed'; });
+    }
+    function togglePlan(id) {
+      var p = planById(id); if (!p) return;
+      EV.api.admin.updatePlan(id, { active: !p.active }).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+    function deletePlan(id) {
+      if (!confirm('Delete this plan? Clients will no longer see it.')) return;
+      EV.api.admin.deletePlan(id).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
     }
 
     /* ---------- USERS ---------- */

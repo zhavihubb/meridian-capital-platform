@@ -60,6 +60,33 @@
 - Email relay → reaches Resend (fails only until domain verified in Resend)
 - Unknown API route → 404
 
+## Feature build (admin tx, wallets, support, plans) — LIVE
+
+| Feature | Endpoint(s) | Status |
+|---------|-------------|--------|
+| Admin generate SINGLE transaction (any type, custom/back-date) | `POST /api/admin/transactions` | ✅ |
+| Admin generate RANDOM transactions (year range, as far back as needed) | `POST /api/admin/transactions/random` | ✅ |
+| Admin edit crypto wallets | `GET/POST/PUT/DELETE /api/admin/wallets` | ✅ |
+| Users see crypto wallets on Deposit tab | `GET /api/wallets` | ✅ |
+| User → support messaging | `GET/POST /api/messages` | ✅ |
+| Admin → reply to any user | `GET /api/admin/chats`, `POST /api/admin/chats/:id/reply` | ✅ |
+| Admin notified (email + dashboard alert) on new support message | `admin_alerts` + Resend | ✅ |
+| Admin notified (email) on new signup | Resend "New signup — {name}" | ✅ |
+| Investment plans (5 seeded) + admin CRUD | `GET /api/plans`, `GET/POST/PUT/DELETE /api/admin/plans` | ✅ |
+| User subscribes to a plan (balance deducted, ROI tracked) | `GET/POST /api/subscriptions` | ✅ |
+
+### Seeded investment plans
+
+| Plan | ROI | Duration | Range | Risk |
+|------|-----|----------|-------|------|
+| 🌱 Starter Growth | 4.5% | 30 days | £100 – £4,999 | Low |
+| ⚖️ Balanced Income | 7.5% | 60 days | £5,000 – £24,999 | Medium |
+| 🚀 Premium Growth | 11.0% | 90 days | £25,000 – £99,999 | Medium-High |
+| 👑 Elite Portfolio | 15.5% | 180 days | £100,000 – £499,999 | High |
+| 🏦 Institutional | 20.0% | 365 days | £500,000+ | High |
+
+> Plans are fully editable from **Admin → Plans** (add / edit / hide / delete).
+
 ---
 
 ## ⚠️ Two actions only you can do
