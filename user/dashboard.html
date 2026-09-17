@@ -1,0 +1,451 @@
+﻿<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg" />
+  <title>My Account — Meridian Capital Partners</title>
+  <meta name="description" content="Your Meridian Capital Partners investment dashboard — balances, deposits, withdrawals, transactions, loans and referrals." />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <span>✉️ support@meridiancapital.co.uk</span>
+      <span class="topbar-auth"><a href="../index.html">Website</a> · <a href="#" onclick="logout();return false;">Log Out</a></span>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="../index.html" class="logo">
+        <div class="logo-mark">MC</div>
+        <div class="logo-text">Meridian Capital<small>UK Investment Platform</small></div>
+      </a>
+      <div class="nav-cta">
+        <span class="badge-uk" id="userChip">👤 My Account</span>
+        <a href="#" class="btn btn-outline-dark btn-sm" onclick="logout();return false;">Log Out</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="dash-wrap">
+    <div class="container">
+      <div class="dash-head">
+        <div>
+          <h1 id="welcomeTitle">My Account</h1>
+          <div class="sub" id="welcomeSub">Loading your account…</div>
+        </div>
+        <div class="dash-card" style="min-width:240px;">
+          <div class="lbl">Available Balance</div>
+          <div class="val gold" id="stripBal">—</div>
+          <div class="sub" id="stripCur" style="font-size:.8rem;"></div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="dash-card"><div class="lbl">Total Deposits</div><div class="val" id="statDep">—</div></div>
+        <div class="dash-card"><div class="lbl">Total Withdrawals</div><div class="val" id="statWdr">—</div></div>
+        <div class="dash-card"><div class="lbl">Profits &amp; Bonus</div><div class="val" id="statProfit">—</div></div>
+        <div class="dash-card"><div class="lbl">Active Loans</div><div class="val" id="statLoans">—</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="tabs">
+          <button class="active" data-tab="overview">📊 Overview</button>
+          <button data-tab="deposit">📥 Deposit</button>
+          <button data-tab="withdraw">📤 Withdraw</button>
+          <button data-tab="transactions">🧾 Transactions</button>
+          <button data-tab="loans">🏦 Loans</button>
+          <button data-tab="referrals">👥 Referrals</button>
+          <button data-tab="profile">👤 Profile &amp; Security</button>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div class="tab-pane active" id="tab-overview">
+          <div class="panel-body">
+            <div class="kv">
+              <div class="row"><span>Account Number</span><span id="ovAcct">—</span></div>
+              <div class="row"><span>Member ID</span><span id="ovMember">—</span></div>
+              <div class="row"><span>KYC Status</span><span id="ovKyc">—</span></div>
+              <div class="row"><span>Account Status</span><span id="ovStatus">—</span></div>
+            </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:20px 0;" />
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Recent Transactions</h3>
+            <div style="overflow-x:auto;">
+              <table class="data" id="recentTx">
+                <thead><tr><th>Date</th><th>Type</th><th>Note</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEPOSIT -->
+        <div class="tab-pane" id="tab-deposit">
+          <div class="panel-body">
+            <p class="muted" style="margin-bottom:16px;">Fund your account via Faster Payments bank transfer, card, or crypto. Minimum first deposit is £100. Funds are credited within 1–2 business days.</p>
+            <div class="kv" style="margin-bottom:20px;">
+              <div class="row"><span>Account Holder</span><span id="depHolder">—</span></div>
+              <div class="row"><span>Sort Code</span><span id="depSort">—</span></div>
+              <div class="row"><span>Account Number</span><span id="depAcct">—</span></div>
+              <div class="row"><span>IBAN</span><span id="depIban">—</span></div>
+              <div class="row"><span>BIC</span><span id="depBic">—</span></div>
+              <div class="row"><span>Reference</span><span id="depRef">—</span></div>
+            </div>
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Crypto Deposit Addresses</h3>
+            <div class="kv">
+              <div class="row"><span>Bitcoin (BTC)</span><span class="copy-field"><code id="wBtc">—</code><button class="btn btn-primary btn-xs" onclick="copyEl('wBtc')">Copy</button></span></div>
+              <div class="row"><span>Ethereum (ETH)</span><span class="copy-field"><code id="wEth">—</code><button class="btn btn-primary btn-xs" onclick="copyEl('wEth')">Copy</button></span></div>
+              <div class="row"><span>Tether (USDT)</span><span class="copy-field"><code id="wUsdt">—</code><button class="btn btn-primary btn-xs" onclick="copyEl('wUsdt')">Copy</button></span></div>
+            </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:20px 0;" />
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Submit Deposit Request</h3>
+            <div class="form-row">
+              <div class="form-group"><label>Amount (£)</label><input type="number" id="depAmount" placeholder="500" min="100" /></div>
+              <div class="form-group"><label>Method</label>
+                <select id="depMethod"><option>Faster Payments</option><option>Debit / Credit Card</option><option>Bitcoin (BTC)</option><option>Ethereum (ETH)</option><option>Tether (USDT)</option></select>
+              </div>
+            </div>
+            <div class="form-group"><label>Transaction Reference / TxID (optional)</label><input type="text" id="depTxid" placeholder="e.g. bank ref or on-chain TxID" /></div>
+            <button class="btn btn-gold" onclick="submitDeposit()">Submit Deposit Request</button>
+            <div class="alert success" id="depOk" style="margin-top:14px;"></div>
+          </div>
+        </div>
+
+        <!-- WITHDRAW -->
+        <div class="tab-pane" id="tab-withdraw">
+          <div class="panel-body">
+            <p class="muted" style="margin-bottom:16px;">Withdrawals to verified bank accounts are processed within 24 hours on business days and arrive within 1–3 business days.</p>
+            <div class="form-row">
+              <div class="form-group"><label>Amount (£)</label><input type="number" id="wdAmount" placeholder="250" min="10" /></div>
+              <div class="form-group"><label>Destination</label>
+                <select id="wdMethod"><option>Bank Transfer (Faster Payments)</option><option>Bitcoin (BTC)</option><option>Ethereum (ETH)</option><option>Tether (USDT)</option></select>
+              </div>
+            </div>
+            <div class="form-group"><label>Destination Details</label><input type="text" id="wdDest" placeholder="Sort code / account number or wallet address" /></div>
+            <button class="btn btn-gold" onclick="submitWithdraw()">Request Withdrawal</button>
+            <div class="alert error" id="wdErr" style="margin-top:14px;"></div>
+            <div class="alert success" id="wdOk" style="margin-top:14px;"></div>
+          </div>
+        </div>
+
+        <!-- TRANSACTIONS -->
+        <div class="tab-pane" id="tab-transactions">
+          <div class="panel-body">
+            <div style="overflow-x:auto;">
+              <table class="data" id="allTx">
+                <thead><tr><th>Date</th><th>Type</th><th>Note</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOANS -->
+        <div class="tab-pane" id="tab-loans">
+          <div class="panel-body">
+            <p class="muted" style="margin-bottom:16px;">Apply for one of our twelve loan products. A 5% arrangement fee applies and is shown before you sign.</p>
+            <div class="form-row">
+              <div class="form-group"><label>Loan Product</label><select id="loanProduct"></select></div>
+              <div class="form-group"><label>Amount (£)</label><input type="number" id="loanAmount" placeholder="10000" min="1000" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Term (months)</label><input type="number" id="loanTerm" placeholder="36" min="6" max="360" /></div>
+              <div class="form-group"><label>Purpose</label><input type="text" id="loanPurpose" placeholder="e.g. Home renovation" /></div>
+            </div>
+            <button class="btn btn-gold" onclick="submitLoan()">Submit Loan Application</button>
+            <div class="alert success" id="loanOk" style="margin-top:14px;"></div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:22px 0;" />
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">My Loan Applications</h3>
+            <div style="overflow-x:auto;">
+              <table class="data" id="loanTable">
+                <thead><tr><th>Date</th><th>Product</th><th>Amount</th><th>Term</th><th>Status</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- REFERRALS -->
+        <div class="tab-pane" id="tab-referrals">
+          <div class="panel-body">
+            <p class="muted" style="margin-bottom:16px;">Share your unique referral code and earn <b>£50 for every person</b> who signs up and gets approved. There's no limit.</p>
+            <div class="form-group">
+              <label>Your Referral Code</label>
+              <div class="copy-field"><code id="refCode">—</code><button class="btn btn-primary btn-sm" onclick="copyEl('refCode')">Copy</button></div>
+            </div>
+            <div class="form-group">
+              <label>Your Referral Link</label>
+              <div class="copy-field"><code id="refLink">—</code><button class="btn btn-primary btn-sm" onclick="copyEl('refLink')">Copy</button></div>
+            </div>
+            <div class="dash-grid" style="grid-template-columns:1fr 1fr;">
+              <div class="dash-card"><div class="lbl">People Referred</div><div class="val" id="refCount">0</div></div>
+              <div class="dash-card"><div class="lbl">Referral Earnings</div><div class="val gold" id="refEarn">£0.00</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROFILE -->
+        <div class="tab-pane" id="tab-profile">
+          <div class="panel-body">
+            <div class="kv">
+              <div class="row"><span>Full Name</span><span id="pfName">—</span></div>
+              <div class="row"><span>Email</span><span id="pfEmail">—</span></div>
+              <div class="row"><span>Phone</span><span id="pfPhone">—</span></div>
+              <div class="row"><span>Country</span><span id="pfCountry">—</span></div>
+              <div class="row"><span>Currency</span><span id="pfCurrency">—</span></div>
+              <div class="row"><span>Member Since</span><span id="pfSince">—</span></div>
+            </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:20px 0;" />
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Change Password</h3>
+            <div class="form-group"><label>Current Password</label><input type="password" id="curPw" placeholder="Your current password" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>New Password</label><input type="password" id="newPw" placeholder="6+ characters" /></div>
+              <div class="form-group"><label>Confirm New Password</label><input type="password" id="newPw2" placeholder="Repeat password" /></div>
+            </div>
+            <button class="btn btn-primary" onclick="changePw()">Update Password</button>
+            <div class="alert error" id="pwErr" style="margin-top:14px;"></div>
+            <div class="alert success" id="pwOk" style="margin-top:14px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <span>© 2025 Meridian Capital Partners. All rights reserved. Registered in England &amp; Wales.</span>
+        <span>Capital at risk. Investing involves risk, including possible loss of principal.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/translations.js?v=3"></script>
+  <script src="../assets/js/app.js?v=3"></script>
+  <script src="../assets/js/api.js?v=1"></script>
+  <script>
+    var user = null, TX = [], LOANS = [], REF = null, WALLETS = [];
+
+    function sym() { return (user && user.symbol) || '£'; }
+    function money(n) { return EV.util.fmtMoney(n, sym()); }
+    function copyEl(id) { var el = document.getElementById(id); if (el) EV.util.copy(el.textContent); }
+    function esc(s) { return EV.util.esc(s == null ? '' : String(s)); }
+    function pill(status) {
+      var s = String(status || '').toLowerCase();
+      var cls = (s === 'completed' || s === 'approved' || s === 'active' || s === 'verified') ? 'ok' : (s === 'declined' || s === 'rejected' || s === 'suspended' || s === 'cancelled' || s === 'reversed') ? 'bad' : 'warn';
+      return '<span class="pill ' + cls + '">' + esc(status) + '</span>';
+    }
+
+    function logout() { EV.api.logout(); location.href = '../index.html'; }
+
+    function load() {
+      if (!EV.api.token()) { location.href = '../login.html'; return; }
+      EV.api.me().then(function (u) {
+        if (u.role === 'admin') { location.href = '../admin/dashboard.html'; return; }
+        user = u;
+        return Promise.all([EV.api.transactions(), EV.api.loans(), EV.api.referrals(), EV.api.wallets()]);
+      }).then(function (res) {
+        if (!res) return;
+        TX = (res[0] && res[0].transactions) || [];
+        LOANS = (res[1] && res[1].loans) || [];
+        REF = res[2] || null;
+        WALLETS = (res[3] && res[3].wallets) || [];
+        render();
+      }).catch(function (ex) {
+        if (ex && ex.status === 401) { EV.api.logout(); location.href = '../login.html'; return; }
+        document.getElementById('welcomeSub').textContent = 'Could not load your account. ' + ((ex && ex.message) || '');
+      });
+    }
+
+    function render() {
+      if (!user) return;
+      document.getElementById('welcomeTitle').textContent = 'Welcome, ' + user.name;
+      document.getElementById('welcomeSub').textContent = 'Member ' + user.memberId + ' · ' + user.email;
+      document.getElementById('userChip').textContent = '👤 ' + user.name;
+      document.getElementById('stripBal').textContent = money(user.balance);
+      document.getElementById('stripCur').textContent = user.currency + ' account';
+
+      var dep = TX.filter(function (t) { return t.type === 'deposit'; }).reduce(function (a, t) { return a + t.amount; }, 0);
+      var wdr = TX.filter(function (t) { return t.type === 'withdrawal'; }).reduce(function (a, t) { return a + t.amount; }, 0);
+      var profit = TX.filter(function (t) { return t.type === 'bonus' || t.type === 'referral' || t.type === 'profit'; }).reduce(function (a, t) { return a + t.amount; }, 0);
+      document.getElementById('statDep').textContent = money(dep);
+      document.getElementById('statWdr').textContent = money(wdr);
+      document.getElementById('statProfit').textContent = money(profit);
+      document.getElementById('statLoans').textContent = LOANS.length;
+
+      document.getElementById('ovAcct').textContent = user.accountNumber;
+      document.getElementById('ovMember').textContent = user.memberId;
+      document.getElementById('ovKyc').innerHTML = pill(user.kyc || 'pending');
+      document.getElementById('ovStatus').innerHTML = pill(user.status || 'active');
+
+      /* deposit details */
+      var bank = user.bank || {};
+      document.getElementById('depHolder').textContent = bank.holder || '—';
+      document.getElementById('depSort').textContent = bank.sortCode || '—';
+      document.getElementById('depAcct').textContent = bank.accountNumber || '—';
+      document.getElementById('depIban').textContent = bank.iban || '—';
+      document.getElementById('depBic').textContent = bank.bic || '—';
+      document.getElementById('depRef').textContent = user.accountNumber || '—';
+
+      /* crypto wallets from server */
+      function walletAddr(net) {
+        var w = WALLETS.filter(function (x) { return String(x.network).toLowerCase().indexOf(net) !== -1; })[0];
+        return w ? w.address : '—';
+      }
+      document.getElementById('wBtc').textContent = walletAddr('btc') !== '—' ? walletAddr('btc') : (EV.crypto && EV.crypto.W_BTC) || '—';
+      document.getElementById('wEth').textContent = walletAddr('eth') !== '—' ? walletAddr('eth') : (EV.crypto && EV.crypto.W_ETH) || '—';
+      document.getElementById('wUsdt').textContent = walletAddr('usdt') !== '—' ? walletAddr('usdt') : (EV.crypto && EV.crypto.W_USDT) || '—';
+
+      /* profile */
+      document.getElementById('pfName').textContent = user.name;
+      document.getElementById('pfEmail').textContent = user.email;
+      document.getElementById('pfPhone').textContent = user.phone || '—';
+      document.getElementById('pfCountry').textContent = user.country;
+      document.getElementById('pfCurrency').textContent = user.currency + ' (' + sym() + ')';
+      document.getElementById('pfSince').textContent = EV.util.fmtDate(user.createdAt);
+
+      /* referrals */
+      if (REF) {
+        document.getElementById('refCode').textContent = REF.code || '—';
+        document.getElementById('refLink').textContent = REF.link || ('https://meridiancapital.co.uk/register.html?ref=' + (REF.code || ''));
+        document.getElementById('refCount').textContent = REF.count || 0;
+        document.getElementById('refEarn').textContent = money(REF.earnings || 0);
+      }
+
+      renderTx();
+      renderLoans();
+    }
+
+    function renderTx() {
+      var rows = TX.map(function (t) {
+        var canCancel = (t.status === 'pending' && (t.type === 'withdrawal' || t.type === 'deposit'));
+        var actions = '<a href="receipt.html?id=' + t.id + '">View</a>' +
+          (canCancel ? ' <button class="btn btn-outline-dark btn-xs" onclick="cancelTx(\'' + t.id + '\')">Cancel</button>' : '');
+        return '<tr><td>' + EV.util.fmtDate(t.created_at) + '</td><td>' + esc(t.type) + '</td><td>' + esc(t.note || t.method || '') + '</td>' +
+          '<td>' + money(t.amount) + '</td><td>' + pill(t.status) + '</td>' +
+          '<td>' + actions + '</td></tr>';
+      }).join('');
+      document.getElementById('allTx').querySelector('tbody').innerHTML = rows || '<tr><td colspan="6" class="empty">No transactions yet.</td></tr>';
+      var recent = TX.slice(0, 5).map(function (t) {
+        return '<tr><td>' + EV.util.fmtDate(t.created_at) + '</td><td>' + esc(t.type) + '</td><td>' + esc(t.note || t.method || '') + '</td>' +
+          '<td>' + money(t.amount) + '</td><td>' + pill(t.status) + '</td></tr>';
+      }).join('');
+      document.getElementById('recentTx').querySelector('tbody').innerHTML = recent || '<tr><td colspan="5" class="empty">No transactions yet.</td></tr>';
+    }
+
+    function cancelTx(id) {
+      if (!confirm('Cancel this request? If it is a withdrawal, the held amount will be returned to your balance.')) return;
+      EV.api.cancelTx(id).then(function (r) {
+        alert((r && r.message) || 'Request cancelled.');
+        load();
+      }).catch(function (ex) { alert((ex && ex.message) || 'Could not cancel request.'); });
+    }
+
+    function renderLoans() {
+      var rows = LOANS.map(function (l) {
+        return '<tr><td>' + EV.util.fmtDate(l.created_at) + '</td><td>' + esc(l.product) + '</td><td>' + money(l.amount) + '</td>' +
+          '<td>' + l.term + ' mo</td><td>' + pill(l.status) + '</td></tr>';
+      }).join('');
+      document.getElementById('loanTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="5" class="empty">No loan applications yet.</td></tr>';
+    }
+
+    function submitDeposit() {
+      var amt = parseFloat(document.getElementById('depAmount').value) || 0;
+      var ok = document.getElementById('depOk');
+      ok.classList.remove('show');
+      if (amt < 100) { ok.className = 'alert error show'; ok.textContent = 'Minimum deposit is £100.'; return; }
+      var method = document.getElementById('depMethod').value;
+      var txid = document.getElementById('depTxid').value;
+      ok.className = 'alert success show'; ok.textContent = 'Submitting…';
+      EV.api.deposit({ amount: amt, method: method, tx_proof: txid }).then(function (r) {
+        ok.className = 'alert success show';
+        ok.textContent = (r && r.message) || 'Deposit request submitted.';
+        document.getElementById('depAmount').value = ''; document.getElementById('depTxid').value = '';
+        load();
+      }).catch(function (ex) {
+        ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Could not submit deposit.';
+      });
+    }
+
+    function submitWithdraw() {
+      var amt = parseFloat(document.getElementById('wdAmount').value) || 0;
+      var err = document.getElementById('wdErr'), ok = document.getElementById('wdOk');
+      err.classList.remove('show'); ok.classList.remove('show');
+      if (amt < 10) { err.textContent = 'Minimum withdrawal is £10.'; err.classList.add('show'); return; }
+      if (amt > user.balance) { err.textContent = 'Insufficient balance. Available: ' + money(user.balance); err.classList.add('show'); return; }
+      var method = document.getElementById('wdMethod').value;
+      var dest = document.getElementById('wdDest').value;
+      if (dest.trim().length < 6) { err.textContent = 'Please provide your payout destination details.'; err.classList.add('show'); return; }
+      EV.api.withdraw({ amount: amt, method: method, destination: dest }).then(function (r) {
+        ok.textContent = (r && r.message) || 'Withdrawal request submitted.';
+        ok.classList.add('show');
+        document.getElementById('wdAmount').value = ''; document.getElementById('wdDest').value = '';
+        load();
+      }).catch(function (ex) {
+        err.textContent = (ex && ex.message) || 'Could not submit withdrawal.'; err.classList.add('show');
+      });
+    }
+
+    function submitLoan() {
+      var amt = parseFloat(document.getElementById('loanAmount').value) || 0;
+      var ok = document.getElementById('loanOk');
+      ok.classList.remove('show');
+      if (amt < 1000) { ok.className = 'alert error show'; ok.textContent = 'Minimum loan amount is £1,000.'; return; }
+      var sel = document.getElementById('loanProduct');
+      var rate = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].getAttribute('data-rate') : '';
+      EV.api.applyLoan({
+        product: sel.value, amount: amt,
+        term: parseInt(document.getElementById('loanTerm').value, 10) || 36,
+        purpose: document.getElementById('loanPurpose').value, rate: rate || ''
+      }).then(function (r) {
+        ok.className = 'alert success show';
+        ok.textContent = (r && r.message) || 'Loan application submitted.';
+        document.getElementById('loanAmount').value = ''; document.getElementById('loanPurpose').value = '';
+        load();
+      }).catch(function (ex) {
+        ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Could not submit loan application.';
+      });
+    }
+
+    function changePw() {
+      var cur = document.getElementById('curPw').value;
+      var p1 = document.getElementById('newPw').value, p2 = document.getElementById('newPw2').value;
+      var err = document.getElementById('pwErr'), ok = document.getElementById('pwOk');
+      err.classList.remove('show'); ok.classList.remove('show');
+      if (!cur) { err.textContent = 'Enter your current password.'; err.classList.add('show'); return; }
+      if (p1.length < 6) { err.textContent = 'Password must be at least 6 characters.'; err.classList.add('show'); return; }
+      if (p1 !== p2) { err.textContent = 'Passwords do not match.'; err.classList.add('show'); return; }
+      EV.api.changePassword(cur, p1).then(function (r) {
+        ok.textContent = (r && r.message) || 'Password updated successfully.'; ok.classList.add('show');
+        document.getElementById('curPw').value = ''; document.getElementById('newPw').value = ''; document.getElementById('newPw2').value = '';
+      }).catch(function (ex) {
+        err.textContent = (ex && ex.message) || 'Could not update password.'; err.classList.add('show');
+      });
+    }
+
+    /* tabs */
+    document.getElementById('tabs').addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      document.querySelectorAll('#tabs button').forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(function (p) { p.classList.remove('active'); });
+      document.getElementById('tab-' + b.getAttribute('data-tab')).classList.add('active');
+    });
+
+    /* loan product options */
+    var lp = document.getElementById('loanProduct');
+    (EV.catalog && EV.catalog.loans ? EV.catalog.loans : []).forEach(function (l) {
+      var o = document.createElement('option');
+      o.value = l.name; o.textContent = l.name + ' — ' + l.rate; o.setAttribute('data-rate', l.rate || '');
+      lp.appendChild(o);
+    });
+
+    load();
+  </script>
+<script src="../assets/js/site.js?v=1"></script>
+</body>
+</html>

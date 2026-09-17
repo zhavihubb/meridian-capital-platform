@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+  <title>Reset Password — Meridian Capital Partners</title>
+  <meta name="description" content="Reset your Meridian Capital Partners account password." />
+  <link rel="stylesheet" href="assets/css/style.css" />
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <span data-ev-contact="phone" data-ev-icon="📞">📞 +44 20 7946 0958</span>
+      <span data-ev-contact="email" data-ev-icon="✉️">✉️ hello@meridiancapital.co.uk</span>
+      <span class="topbar-auth"><a href="login.html">Client Login</a> · <a href="index.html">Home</a></span>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html" class="logo">
+        <div class="logo-mark">MC</div>
+        <div class="logo-text">Meridian Capital<small>UK Investment Platform</small></div>
+      </a>
+      <div class="nav-cta">
+        <a href="index.html" class="btn btn-outline-dark btn-sm">Back to Website</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="auth-hero">
+    <div class="container">
+      <h1>Reset Your Password</h1>
+      <p>Enter your email address and we'll send you a secure link to reset your password.</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <form class="auth-card" id="resetForm">
+      <h2>Forgot Password</h2>
+      <div class="sub">We'll email you a reset link if an account exists for that address.</div>
+      <div class="alert error" id="err"></div>
+      <div class="alert success" id="ok"></div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="you@email.com" required />
+      </div>
+
+      <button class="btn btn-gold" type="submit" id="submitBtn" style="width:100%;font-size:1.05rem;">Send Reset Link</button>
+
+      <div class="auth-foot">
+        Remembered it? <a href="login.html">Back to sign in</a><br/>
+        New to Meridian Capital Partners? <a href="register.html">Open an account — £150 bonus</a>
+      </div>
+    </form>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <span>© 2025 Meridian Capital Partners. All rights reserved. Registered in England &amp; Wales.</span>
+        <span>Capital at risk. Investing involves risk, including possible loss of principal.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/translations.js?v=3"></script>
+  <script src="assets/js/app.js?v=3"></script>
+  <script src="assets/js/api.js?v=1"></script>
+  <script>
+    document.getElementById('resetForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var err = document.getElementById('err'), ok = document.getElementById('ok');
+      err.classList.remove('show'); ok.classList.remove('show');
+      var email = document.getElementById('email').value.trim();
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.textContent = 'Sending…';
+      EV.api.forgotPassword(email).then(function () {
+        btn.disabled = false; btn.textContent = 'Send Reset Link';
+        ok.textContent = 'If an account exists for ' + email + ', a reset link has been sent. Please check your inbox.';
+        ok.classList.add('show');
+        e.target.reset();
+      }).catch(function (ex) {
+        btn.disabled = false; btn.textContent = 'Send Reset Link';
+        err.textContent = (ex && ex.message) || 'Could not send reset link. Please try again.';
+        err.classList.add('show');
+      });
+    });
+  </script>
+<script src="assets/js/site.js?v=1"></script>
+</body>
+</html>

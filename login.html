@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+  <title>Client Login — Meridian Capital Partners</title>
+  <meta name="description" content="Sign in to your Meridian Capital Partners investment dashboard." />
+  <link rel="stylesheet" href="assets/css/style.css" />
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <span data-ev-contact="phone" data-ev-icon="📞">📞 +44 20 7946 0958</span>
+      <span data-ev-contact="email" data-ev-icon="✉️">✉️ hello@meridiancapital.co.uk</span>
+      <span class="topbar-auth"><a href="index.html">Home</a> · <a href="register.html">Open Account</a></span>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html" class="logo">
+        <div class="logo-mark">MC</div>
+        <div class="logo-text">Meridian Capital<small>UK Investment Platform</small></div>
+      </a>
+      <div class="nav-cta">
+        <a href="index.html" class="btn btn-outline-dark btn-sm">Back to Website</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="auth-hero">
+    <div class="container">
+      <h1>Welcome Back</h1>
+      <p>Sign in to view your portfolio, transactions and messages.</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <form class="auth-card" id="loginForm">
+      <h2>Sign In</h2>
+      <div class="sub">Use the email and password you registered with.</div>
+      <div class="alert error" id="err"></div>
+      <div class="alert success" id="ok"></div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="you@email.com" required />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Your password" required />
+      </div>
+
+      <button class="btn btn-gold" type="submit" id="submitBtn" style="width:100%;font-size:1.05rem;">Sign In</button>
+
+      <div class="auth-foot">
+        Forgot your password? <a href="reset.html">Reset it here</a><br/>
+        New to Meridian Capital Partners? <a href="register.html">Open an account — £150 bonus</a>
+      </div>
+    </form>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <span>© 2025 Meridian Capital Partners. All rights reserved. Registered in England &amp; Wales.</span>
+        <span>Capital at risk. Investing involves risk, including possible loss of principal.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/translations.js?v=3"></script>
+  <script src="assets/js/app.js?v=3"></script>
+  <script src="assets/js/api.js?v=1"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var err = document.getElementById('err'), ok = document.getElementById('ok');
+      err.classList.remove('show'); ok.classList.remove('show');
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.textContent = 'Signing in…';
+      EV.api.login(document.getElementById('email').value, document.getElementById('password').value)
+        .then(function (res) {
+          btn.disabled = false; btn.textContent = 'Sign In';
+          ok.textContent = 'Welcome back! Redirecting…'; ok.classList.add('show');
+          setTimeout(function () {
+            window.location.href = (res.user && res.user.role === 'admin') ? 'admin/dashboard.html' : 'user/dashboard.html';
+          }, 700);
+        })
+        .catch(function (ex) {
+          btn.disabled = false; btn.textContent = 'Sign In';
+          err.textContent = (ex && ex.message) || 'Login failed.'; err.classList.add('show');
+        });
+    });
+  </script>
+<script src="assets/js/site.js?v=1"></script>
+</body>
+</html>

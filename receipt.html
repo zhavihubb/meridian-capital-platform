@@ -1,0 +1,223 @@
+﻿<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+  <title>Transaction Receipt — Meridian Capital Partners</title>
+  <meta name="description" content="Official Meridian Capital Partners transaction receipt." />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    .receipt-wrap { max-width: 760px; margin: 40px auto 60px; padding: 0 20px; }
+    .receipt { background: #fff; border: 1px solid #e6ecf3; border-radius: var(--radius); box-shadow: 0 18px 50px rgba(10,31,51,.08); overflow: hidden; }
+    .receipt-head { background: linear-gradient(135deg, var(--brand-dark), var(--brand-primary)); color: #fff; padding: 28px 32px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .receipt-head .logo-mark { background: var(--brand-accent); color: var(--brand-dark); }
+    .receipt-head .logo-text { color: #fff; }
+    .receipt-head .logo-text small { color: rgba(255,255,255,.7); }
+    .receipt-status { text-align: right; }
+    .receipt-status .stamp { display: inline-block; border: 2px solid var(--brand-accent); color: var(--brand-accent); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: .72rem; padding: 6px 14px; border-radius: 999px; }
+    .receipt-body { padding: 32px; }
+    .receipt-amount { text-align: center; padding: 22px 0 26px; border-bottom: 1px dashed #e6ecf3; margin-bottom: 26px; }
+    .receipt-amount .lbl { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
+    .receipt-amount .amt { font-family: var(--font-head); font-size: 2.6rem; color: var(--brand-dark); margin-top: 6px; }
+    .receipt-amount .amt.gold { color: var(--brand-accent); }
+    .receipt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
+    .receipt-grid .row { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid #f1f5f9; font-size: .92rem; }
+    .receipt-grid .row span:first-child { color: var(--ink-soft); }
+    .receipt-grid .row span:last-child { font-weight: 600; color: var(--brand-dark); text-align: right; word-break: break-word; }
+    .receipt-foot { padding: 22px 32px 30px; border-top: 1px solid #e6ecf3; background: #f8fafc; font-size: .8rem; color: var(--ink-soft); line-height: 1.6; }
+    .receipt-actions { display: flex; gap: 12px; justify-content: center; margin-top: 26px; flex-wrap: wrap; }
+    .receipt-seal { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding-top: 18px; border-top: 1px dashed #e6ecf3; font-size: .8rem; color: var(--ink-soft); }
+    .receipt-seal .seal { width: 46px; height: 46px; border-radius: 50%; border: 2px dashed var(--brand-accent); display: grid; place-items: center; color: var(--brand-accent); font-weight: 700; font-size: .62rem; text-align: center; line-height: 1.1; }
+    @media (max-width: 640px) { .receipt-grid { grid-template-columns: 1fr; } .receipt-body, .receipt-head, .receipt-foot { padding-left: 20px; padding-right: 20px; } }
+    @media print {
+      .topbar, .site-header, .site-footer, .receipt-actions, .no-print { display: none !important; }
+      .receipt { box-shadow: none; border: none; }
+      body { background: #fff; }
+    }
+  </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+
+  <div class="topbar no-print">
+    <div class="container">
+      <span>✉️ support@meridiancapital.co.uk</span>
+      <span class="topbar-auth"><a href="index.html">Website</a> · <a href="user/dashboard.html">My Account</a></span>
+    </div>
+  </div>
+
+  <header class="site-header no-print">
+    <div class="container nav-wrap">
+      <a href="index.html" class="logo">
+        <div class="logo-mark">MC</div>
+        <div class="logo-text">Meridian Capital<small>UK Investment Platform</small></div>
+      </a>
+      <div class="nav-cta">
+        <span class="badge-uk">🇬🇧 United Kingdom</span>
+        <a href="user/dashboard.html" class="btn btn-outline-dark btn-sm">← Back to Account</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="receipt-wrap">
+    <div class="receipt" id="receipt">
+      <div class="receipt-head">
+        <div class="logo">
+          <div class="logo-mark">MC</div>
+          <div class="logo-text">Meridian Capital<small>UK Investment Platform</small></div>
+        </div>
+        <div class="receipt-status">
+          <div class="stamp" id="rcStatus">Completed</div>
+        </div>
+      </div>
+
+      <div class="receipt-body">
+        <div class="receipt-amount">
+          <div class="lbl" id="rcType">Transaction</div>
+          <div class="amt" id="rcAmount">£0.00</div>
+        </div>
+
+        <div class="receipt-grid">
+          <div>
+            <div class="row"><span>Institution</span><span id="rcInstitution">MERIDIAN CAPITAL PARTNERS</span></div>
+            <div class="row"><span>Reference</span><span id="rcRef">—</span></div>
+            <div class="row"><span>Date &amp; Time</span><span id="rcDate">—</span></div>
+            <div class="row"><span>Currency</span><span id="rcCurrency">GBP</span></div>
+            <div class="row"><span>Status</span><span id="rcStatus2">—</span></div>
+          </div>
+          <div>
+            <div class="row"><span>Account Holder</span><span id="rcHolder">—</span></div>
+            <div class="row"><span>Account Number</span><span id="rcAccount">—</span></div>
+            <div class="row"><span>Member ID</span><span id="rcMember">—</span></div>
+            <div class="row"><span>IBAN</span><span id="rcIban">—</span></div>
+            <div class="row"><span>BIC / SWIFT</span><span id="rcBic">—</span></div>
+          </div>
+        </div>
+
+        <div class="receipt-seal">
+          <div class="seal">FSCS<br />PROTECTED</div>
+          <div>
+            <b>Electronically verified receipt.</b><br />
+            This document is generated automatically by the Meridian Capital Partners platform and is valid without a signature. Eligible deposits are protected by the Financial Services Compensation Scheme (FSCS) up to £85,000 per eligible depositor.
+          </div>
+        </div>
+      </div>
+
+      <div class="receipt-foot">
+        <b>Meridian Capital Partners</b> · Registered in England &amp; Wales · Authorised and regulated by the Financial Conduct Authority (FCA) · 30 St Mary Axe, London EC3A 8BF, United Kingdom.<br />
+        Capital at risk. The value of investments can go down as well as up and you may get back less than you invest. Past performance is not a reliable indicator of future results. This receipt is not a tax document.
+      </div>
+    </div>
+
+    <div class="receipt-actions no-print">
+      <button class="btn btn-primary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+      <button class="btn btn-gold" onclick="copyReceipt()">📋 Copy Receipt Details</button>
+      <a href="user/dashboard.html" class="btn btn-outline-dark">← Back to Account</a>
+    </div>
+
+    <div class="alert error" id="rcErr" style="max-width:760px;margin:20px auto 0;"></div>
+  </div>
+
+  <footer class="site-footer no-print">
+    <div class="container">
+      <div class="footer-bottom">
+        <span>© 2025 Meridian Capital Partners. All rights reserved.</span>
+        <span>Capital at risk. Investing involves risk, including possible loss of principal.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/translations.js?v=3"></script>
+  <script src="assets/js/app.js?v=3"></script>
+  <script src="assets/js/api.js?v=1"></script>
+  <script>
+    function qs(name) {
+      var m = new RegExp('[?&]' + name + '=([^&]+)').exec(location.search);
+      return m ? decodeURIComponent(m[1]) : null;
+    }
+
+    (function render() {
+      var id = qs('id');
+      var err = document.getElementById('rcErr');
+      if (!EV.api.token()) { err.classList.add('show'); err.textContent = 'Please sign in to view your receipt.'; return; }
+      if (!id) { err.classList.add('show'); err.textContent = 'No transaction reference supplied. Open a receipt from your account dashboard.'; return; }
+
+      EV.api.me().then(function (user) {
+        var isAdmin = user.role === 'admin';
+        var p = isAdmin ? EV.api.admin.transactions() : EV.api.transactions();
+        return p.then(function (res) {
+          var all = (res && res.transactions) || [];
+          var tx = null;
+          for (var i = 0; i < all.length; i++) if (String(all[i].id) === String(id)) { tx = all[i]; break; }
+          if (!tx) { err.classList.add('show'); err.textContent = 'Transaction not found. It may have been removed or belongs to another account.'; return; }
+          var owner = user;
+          if (isAdmin) {
+            return EV.api.admin.users().then(function (ur) {
+              var us = (ur && ur.users) || [];
+              for (var j = 0; j < us.length; j++) if (String(us[j].id) === String(tx.user_id)) { owner = us[j]; break; }
+              paint(tx, owner);
+            });
+          }
+          paint(tx, owner);
+        });
+      }).catch(function (ex) {
+        err.classList.add('show');
+        err.textContent = (ex && ex.status === 401) ? 'Please sign in to view your receipt.' : ((ex && ex.message) || 'Could not load receipt.');
+      });
+
+      function paint(tx, owner) {
+        var bank = (owner && owner.bank) || {};
+        var d = {
+          type: tx.type,
+          amount: EV.util.fmtMoney(tx.amount, (owner && owner.symbol) || '\u00a3'),
+          institution: 'MERIDIAN CAPITAL PARTNERS',
+          reference: tx.reference || ('MCUK-' + String(tx.id).toUpperCase()),
+          date: EV.util.fmtDateTime(tx.created_at),
+          currency: (owner && owner.currency) || 'GBP',
+          status: tx.status || 'completed',
+          note: tx.note || tx.method || '',
+          holder: (owner && owner.name) || '\u2014',
+          account: (owner && owner.accountNumber) || '\u2014',
+          member: (owner && owner.memberId) || '\u2014',
+          iban: bank.iban || '\u2014',
+          bic: bank.bic || '\u2014'
+        };
+        document.getElementById('rcType').textContent = (d.type || 'transaction').toUpperCase();
+        document.getElementById('rcAmount').textContent = d.amount;
+        document.getElementById('rcInstitution').textContent = d.institution;
+        document.getElementById('rcRef').textContent = d.reference;
+        document.getElementById('rcDate').textContent = d.date;
+        document.getElementById('rcCurrency').textContent = d.currency;
+        document.getElementById('rcStatus').textContent = d.status;
+        document.getElementById('rcStatus2').textContent = d.status;
+        document.getElementById('rcHolder').textContent = d.holder;
+        document.getElementById('rcAccount').textContent = d.account;
+        document.getElementById('rcMember').textContent = d.member;
+        document.getElementById('rcIban').textContent = d.iban;
+        document.getElementById('rcBic').textContent = d.bic;
+        if (d.note) {
+          var row = document.createElement('div');
+          row.className = 'row';
+          row.innerHTML = '<span>Note</span><span>' + EV.util.esc(d.note) + '</span>';
+          document.querySelector('.receipt-grid > div').appendChild(row);
+        }
+        document.title = 'Receipt ' + d.reference + ' \u2014 Meridian Capital Partners';
+      }
+    })();
+
+    function copyReceipt() {
+      var lines = [];
+      document.querySelectorAll('.receipt-grid .row').forEach(function (r) {
+        var s = r.querySelectorAll('span');
+        if (s.length === 2) lines.push(s[0].textContent + ': ' + s[1].textContent);
+      });
+      lines.unshift('AMOUNT: ' + document.getElementById('rcAmount').textContent);
+      EV.util.copy(lines.join('\n'));
+      var btn = event.target; var t = btn.textContent; btn.textContent = '\u2713 Copied';
+      setTimeout(function () { btn.textContent = t; }, 1600);
+    }
+  </script>
+<script src="assets/js/site.js?v=1"></script>
+</body>
+</html>

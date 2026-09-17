@@ -1,0 +1,49 @@
+/* ============================================================
+   MERIDIAN CAPITAL PARTNERS — LEGAL PAGES STYLESHEET
+   Meridian design system: navy #0A1F33, primary #0E4C92,
+   gold #C9A227, Georgia headings.
+   ============================================================ */
+
+.legal-hero {
+  background: linear-gradient(rgba(6,20,36,.85), rgba(6,20,36,.94)), url('../images/hero.jpg') center/cover no-repeat;
+  color: #fff; padding: 70px 0 80px;
+}
+.legal-hero h1 { font-family: var(--font-head); font-size: clamp(1.9rem, 4vw, 2.7rem); margin-bottom: 12px; }
+.legal-hero p { color: #d7e2ee; max-width: 720px; }
+.legal-hero .updated { display: inline-block; margin-top: 16px; font-size: .8rem; color: var(--brand-accent-soft); border: 1px solid rgba(231,206,107,.4); padding: 5px 14px; border-radius: 999px; }
+
+.legal-wrap { max-width: 900px; margin: 0 auto; padding: 60px 24px 90px; }
+.legal-wrap h2 {
+  font-family: var(--font-head); color: var(--brand-dark); font-size: 1.5rem;
+  margin: 40px 0 14px; padding-left: 16px; border-left: 4px solid var(--brand-accent);
+}
+.legal-wrap h2:first-child { margin-top: 0; }
+.legal-wrap h3 { font-family: var(--font-head); color: var(--brand-dark); font-size: 1.15rem; margin: 26px 0 10px; }
+.legal-wrap p { color: var(--ink-soft); margin-bottom: 14px; }
+.legal-wrap ul, .legal-wrap ol { margin: 0 0 16px 22px; color: var(--ink-soft); }
+.legal-wrap li { margin-bottom: 8px; }
+.legal-wrap a { color: var(--brand-primary); font-weight: 600; }
+
+.legal-toc {
+  background: var(--brand-light); border: 1px solid #e6ecf3; border-radius: var(--radius);
+  padding: 24px 28px; margin-bottom: 40px;
+}
+.legal-toc h4 { font-family: var(--font-head); color: var(--brand-dark); margin-bottom: 12px; }
+.legal-toc ol { margin-left: 20px; }
+.legal-toc a { text-decoration: none; }
+.legal-toc a:hover { text-decoration: underline; }
+
+.callout {
+  background: var(--brand-light); border-left: 4px solid var(--brand-primary);
+  border-radius: 8px; padding: 18px 22px; margin: 22px 0;
+}
+.callout.warning { background: #fdf3e0; border-left-color: var(--brand-accent); }
+.callout p:last-child { margin-bottom: 0; }
+
+.legal-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+.legal-table th, .legal-table td { padding: 12px 16px; text-align: left; font-size: .9rem; border-bottom: 1px solid #eef3f8; }
+.legal-table thead th { background: var(--brand-dark); color: #fff; font-family: var(--font-head); }
+.legal-table tbody tr:nth-child(even) { background: var(--brand-light); }
+
+.legal-back { display: inline-flex; align-items: center; gap: 8px; margin-top: 40px; font-weight: 700; color: var(--brand-primary); text-decoration: none; }
+.legal-back:hover { text-decoration: underline; }

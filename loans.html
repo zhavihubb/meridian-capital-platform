@@ -1,0 +1,320 @@
+﻿<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+  <title>Loans &amp; Financing — Meridian Capital Partners</title>
+  <meta name="description" content="Twelve loan products from Meridian Capital Partners — personal, mortgage, auto, business, student, consolidation and green energy financing with transparent APR." />
+  <link rel="canonical" href="https://meridiancapital.co.uk/loans.html" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body class="meridian-home">
+
+  <!-- ============ MARKET TICKER ============ -->
+  <div class="market-ticker" id="marketTicker"></div>
+
+  <!-- ============ TOP BAR ============ -->
+  <div class="topbar">
+    <div class="container">
+      <span data-ev-contact="phone" data-ev-icon="📞">📞 +44 20 7946 0958</span>
+      <span data-ev-contact="email" data-ev-icon="✉️">✉️ hello@meridiancapital.co.uk</span>
+      <span data-ev-contact="address" data-ev-icon="📍">📍 1 Canada Square, Canary Wharf, London E14 5AB</span>
+      <span class="topbar-auth">
+        <a href="login.html" data-i18n="cta.signin">Sign In</a> ·
+        <a href="register.html" data-i18n="cta.create">Create Account</a>
+      </span>
+    </div>
+  </div>
+
+  <!-- ============ HEADER / NAVIGATION ============ -->
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html" class="logo">
+        <div class="logo-mark">MC</div>
+        <div class="logo-text">Meridian Capital<small>UK Investment Platform</small></div>
+      </a>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="index.html" data-i18n="nav.home">Home</a></li>
+          <li><a href="markets.html" data-i18n="nav.markets">Markets</a></li>
+          <li><a href="loans.html" class="active" data-i18n="nav.loans">Loans</a></li>
+          <li><a href="portfolios.html" data-i18n="nav.portfolios">Portfolios</a></li>
+          <li><a href="about.html" data-i18n="nav.about">About</a></li>
+          <li><a href="legal/terms.html" data-i18n="nav.legal">Legal</a></li>
+        </ul>
+      </nav>
+      <div class="nav-cta">
+        <select class="lang-select" id="langSelect" aria-label="Language"></select>
+        <a href="login.html" class="btn btn-outline-dark btn-sm" data-i18n="cta.signin">Sign In</a>
+        <a href="register.html" class="btn btn-gold btn-sm" data-i18n="cta.create">Create Account</a>
+        <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ MOBILE NAV ============ -->
+  <div class="mobile-nav" id="mobileNav">
+    <div class="panel">
+      <button class="close-x" aria-label="Close">✕</button>
+      <h4>Menu</h4>
+      <a href="index.html">Home</a>
+      <a href="markets.html">Markets</a>
+      <a href="loans.html">Loans</a>
+      <a href="portfolios.html">Portfolios</a>
+      <a href="about.html">About</a>
+      <a href="legal/terms.html">Legal</a>
+      <a href="login.html">Sign In</a>
+      <a href="register.html">Create Account</a>
+    </div>
+  </div>
+
+  <!-- ============ PAGE HERO ============ -->
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow">🇬🇧 Transparent UK Lending</span>
+      <h1>Loans &amp; Financing</h1>
+      <p>Twelve loan products with clear, transparent APR disclosure for the UK market — from personal and mortgage lending to business, student and green energy financing. Existing investors receive preferential rates.</p>
+      <div class="hero-actions">
+        <a href="register.html" class="btn btn-gold">Apply for a Loan</a>
+        <a href="#calculator" class="btn btn-outline">Estimate Repayments</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRUST BAR ============ -->
+  <div class="trust-bar">
+    <div class="container">
+      <span class="item">📊 Transparent APR</span>
+      <span class="item">⚡ 24–48h Decisions</span>
+      <span class="item">🇬🇧 UK Regulated Lending</span>
+      <span class="item">🔒 Secure Application</span>
+      <span class="item">💷 No Hidden Fees</span>
+    </div>
+  </div>
+
+  <!-- ============ LOANS ============ -->
+  <section>
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Loan Products</span>
+        <h2>Twelve Ways to Borrow</h2>
+        <p>Every product shows its full APR range up front — no surprises, no hidden charges.</p>
+      </div>
+      <div class="loan-grid" id="loanGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ CALCULATOR ============ -->
+  <section id="calculator" class="section-light">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Loan Calculator</span>
+        <h2>Estimate Your Repayments</h2>
+        <p>Enter an amount and term to see an indicative monthly repayment. A 5% arrangement fee applies to all loans.</p>
+      </div>
+      <div class="split">
+        <div>
+          <div class="form-group">
+            <label>Loan Amount (£)</label>
+            <input type="number" id="calcAmount" value="10000" min="1000" step="500" />
+          </div>
+          <div class="form-group">
+            <label>Term (months)</label>
+            <input type="number" id="calcTerm" value="36" min="6" max="360" step="6" />
+          </div>
+          <div class="form-group">
+            <label>Indicative APR (%)</label>
+            <input type="number" id="calcRate" value="7.9" min="1" max="30" step="0.1" />
+          </div>
+          <button class="btn btn-primary" onclick="calcLoan()">Calculate</button>
+        </div>
+        <div>
+          <div class="stat-card" style="text-align:left;">
+            <div class="lbl">Monthly Repayment</div>
+            <div class="val" id="calcMonthly">£0.00</div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:16px 0;" />
+            <div class="lbl">Total Repayable</div>
+            <div class="val" id="calcTotal" style="font-size:1.4rem;">£0.00</div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:16px 0;" />
+            <div class="lbl">Arrangement Fee (5%)</div>
+            <div class="val" id="calcFee" style="font-size:1.4rem;">£0.00</div>
+            <p style="font-size:.78rem;color:var(--ink-soft);margin-top:14px;">Indicative only. Final terms are subject to credit approval and eligibility. Your home may be repossessed if you do not keep up repayments on a mortgage or other loan secured on it.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROCESS ============ -->
+  <section>
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">How It Works</span>
+        <h2>Applying for a Loan</h2>
+        <p>Four straightforward steps from application to funds in your account.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="num">01</div><h3>Apply Online</h3><p>Complete a short application with your details and the amount you need. Existing investors are pre-filled.</p></div>
+        <div class="step"><div class="num">02</div><h3>Credit Assessment</h3><p>Our team reviews your application and affordability within 24–48 hours for most products.</p></div>
+        <div class="step"><div class="num">03</div><h3>Receive Your Offer</h3><p>You receive a clear offer showing the APR, term, monthly repayment and total cost — no hidden fees.</p></div>
+        <div class="step"><div class="num">04</div><h3>Funds Disbursed</h3><p>Once accepted, funds are disbursed to your nominated UK bank account via Faster Payments.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA BAND ============ -->
+  <section class="cta-band">
+    <div class="container">
+      <h2>Borrow With Confidence</h2>
+      <p>Transparent APR, fast decisions, and preferential rates for existing investors. Open your account to get started.</p>
+      <div class="hero-actions">
+        <a href="register.html" class="btn btn-gold">Create Account — £150 Bonus</a>
+        <a href="login.html" class="btn btn-outline">Sign In</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-about">
+          <a href="index.html" class="logo" style="text-decoration:none;">
+            <div class="logo-mark">MC</div>
+            <div class="logo-text">Meridian Capital<small>UK Investment Platform</small></div>
+          </a>
+          <p>UK investment platform serving British and global investors with access to global markets across 12 asset classes.</p>
+          <div class="footer-flags">🇬🇧 🇪🇺 🌎</div>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul>
+            <li><a href="about.html">About</a></li>
+            <li><a href="markets.html">Markets</a></li>
+            <li><a href="loans.html">Loans</a></li>
+            <li><a href="portfolios.html">Portfolios</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="legal/terms.html">Terms &amp; Conditions</a></li>
+            <li><a href="legal/privacy.html">Privacy Policy</a></li>
+            <li><a href="legal/risk.html">Risk Disclosure</a></li>
+            <li><a href="legal/aml.html">AML / KYC</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Support</h4>
+          <ul>
+            <li><a href="login.html">Sign In</a></li>
+            <li><a href="register.html">Create Account</a></li>
+            <li><a href="legal/complaints.html">Complaints</a></li>
+            <li><a href="legal/regulatory.html">Regulatory</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 Meridian Capital Partners. All rights reserved. Registered in England &amp; Wales.</span>
+        <span>🇬🇧 UK Investment Platform</span>
+      </div>
+      <div class="disclaimer">
+        Capital at risk. The value of investments can go down as well as up. Past performance is not indicative of future results. This platform is for demonstration purposes.
+        Meridian Capital Partners is a UK investment platform operating in alignment with UK investment rules and FCA regulatory expectations. Loans are subject to credit approval and eligibility.
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ REGULATORY BANNER ============ -->
+  <div class="regulatory-banner">
+    <div class="container">
+      <span class="badge">🏛️ <b>FCA</b>-Aligned</span>
+      <span class="badge">📜 UK Investment Rules</span>
+      <span class="badge">🔄 AML / KYC</span>
+      <span class="badge">🛡️ FSCS Protection</span>
+      <span class="badge">💷 Faster Payments</span>
+    </div>
+  </div>
+
+  <!-- ============ CHAT WIDGET ============ -->
+  <div class="chat-widget">
+    <div class="chat-box" id="chatBox">
+      <div class="chat-head">
+        <div>
+          <h4>🤖 Customer Support</h4>
+          <div class="sub">Online — AI Assistant</div>
+        </div>
+        <button onclick="EV.toggleChat()" aria-label="Close">✕</button>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg bot">Hello! Welcome to Meridian Capital Partners Support. How can I help you today?</div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type your message…" onkeydown="if(event.key==='Enter')EV.sendChat()" />
+        <button onclick="EV.sendChat()" aria-label="Send">➤</button>
+      </div>
+    </div>
+    <button class="chat-toggle" onclick="EV.toggleChat()" aria-label="Chat">💬</button>
+  </div>
+
+  <!-- ============ COOKIE CONSENT ============ -->
+  <div class="cookie-consent" id="cookieConsent">
+    <p>We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. By clicking "Accept", you consent to our use of cookies. See our <a href="legal/cookies.html">Cookie Policy</a>.</p>
+    <div class="actions">
+      <button class="btn btn-gold btn-sm" onclick="EVExtras.acceptCookies()">Accept</button>
+      <button class="btn btn-outline btn-sm" onclick="EVExtras.declineCookies()">Decline</button>
+    </div>
+  </div>
+
+  <!-- ============ SCRIPTS ============ -->
+  <script src="assets/js/translations.js?v=3"></script>
+  <script src="assets/js/app.js?v=3"></script>
+  <script src="assets/js/sync.js"></script>
+  <script src="assets/js/extras.js"></script>
+  <script>
+    EV.sync.init();
+    EV_I18N.init();
+
+    function renderLoans() {
+      var grid = document.getElementById("loanGrid");
+      var html = "";
+      EV.catalog.loans.forEach(function (l) {
+        var tags = (l.tags || []).map(function (t) { return '<span class="tag">' + t + '</span>'; }).join("");
+        html += '<div class="loan-card">' +
+          '<div class="lico">' + l.icon + '</div>' +
+          '<h3>' + l.name + '</h3>' +
+          '<div class="rate">' + l.rate + '</div>' +
+          '<div style="font-size:.85rem;color:var(--ink-soft);margin-bottom:12px;">Amount: ' + l.range + '</div>' +
+          '<div class="tags">' + tags + '</div>' +
+          '<a href="register.html" class="btn btn-primary btn-sm" style="margin-top:16px;">Apply Now</a>' +
+          '</div>';
+      });
+      grid.innerHTML = html;
+    }
+
+    function calcLoan() {
+      var amount = parseFloat(document.getElementById("calcAmount").value) || 0;
+      var term = parseInt(document.getElementById("calcTerm").value, 10) || 12;
+      var apr = parseFloat(document.getElementById("calcRate").value) || 0;
+      var monthlyRate = (apr / 100) / 12;
+      var monthly;
+      if (monthlyRate === 0) {
+        monthly = amount / term;
+      } else {
+        monthly = amount * monthlyRate / (1 - Math.pow(1 + monthlyRate, -term));
+      }
+      var total = monthly * term;
+      var fee = EV.loanFee.calc(amount);
+      document.getElementById("calcMonthly").textContent = EV.util.fmtMoney(monthly);
+      document.getElementById("calcTotal").textContent = EV.util.fmtMoney(total);
+      document.getElementById("calcFee").textContent = EV.util.fmtMoney(fee);
+    }
+
+    renderLoans();
+    calcLoan();
+  </script>
+<script src="assets/js/site.js?v=1"></script>
+</body>
+</html>

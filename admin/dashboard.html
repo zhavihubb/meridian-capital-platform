@@ -1,0 +1,608 @@
+﻿<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg" />
+  <title>Admin Console — Meridian Capital Partners</title>
+  <meta name="description" content="Meridian Capital Partners administrator console — manage clients, transactions, loans and messages." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .admin-bar { background: linear-gradient(135deg, var(--brand-dark), #06121f); color: #fff; padding: 22px 0; }
+    .admin-bar .container { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .admin-bar h1 { font-family: var(--font-head); font-size: 1.5rem; }
+    .admin-bar .sub { color: rgba(255,255,255,.65); font-size: .84rem; }
+    .admin-bar .badge-uk { background: rgba(201,162,39,.18); color: var(--brand-accent); border-color: rgba(201,162,39,.4); }
+    .filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+    .filter-row input, .filter-row select { padding: 9px 12px; border: 1px solid #d7e0ea; border-radius: 10px; font: inherit; font-size: .88rem; }
+    .filter-row input { flex: 1; min-width: 180px; }
+    .mini { font-size: .78rem; color: var(--ink-soft); }
+    .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .msg-thread { border: 1px solid #e6ecf3; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; background: #fff; }
+    .msg-thread .head { display: flex; justify-content: space-between; gap: 10px; font-size: .82rem; color: var(--ink-soft); margin-bottom: 8px; }
+    .msg-thread .body { font-size: .92rem; color: var(--ink); }
+    .msg-thread .reply { margin-top: 10px; display: flex; gap: 8px; }
+    .msg-thread .reply input { flex: 1; padding: 8px 12px; border: 1px solid #d7e0ea; border-radius: 10px; font: inherit; font-size: .88rem; }
+    .stat-mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    @media (max-width: 760px) { .stat-mini { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <span>🛡️ Administrator Console</span>
+      <span class="topbar-auth"><a href="../index.html">Website</a> · <a href="#" onclick="logout();return false;">Log Out</a></span>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="../index.html" class="logo">
+        <div class="logo-mark">MC</div>
+        <div class="logo-text">Meridian Capital<small>UK Investment Platform</small></div>
+      </a>
+      <div class="nav-cta">
+        <span class="badge-uk" id="adminChip">🛡️ Administrator</span>
+        <a href="#" class="btn btn-outline-dark btn-sm" onclick="logout();return false;">Log Out</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-bar">
+    <div class="container">
+      <div>
+        <h1>Administrator Console</h1>
+        <div class="sub" id="adminSub">Loading platform data…</div>
+      </div>
+      <div class="row-actions">
+        <button class="btn btn-gold btn-sm" onclick="sendRules()">Email Rules to All</button>
+        <button class="btn btn-outline btn-sm" onclick="backupDb()">Download DB Backup</button>
+        <button class="btn btn-outline btn-sm" onclick="load()">Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-wrap">
+    <div class="container">
+
+      <div class="dash-grid">
+        <div class="dash-card"><div class="lbl">Total Clients</div><div class="val" id="kClients">0</div></div>
+        <div class="dash-card"><div class="lbl">Total Deposits</div><div class="val" id="kDeposits">£0.00</div></div>
+        <div class="dash-card"><div class="lbl">Pending Items</div><div class="val" id="kPending">0</div></div>
+        <div class="dash-card"><div class="lbl">Loan Applications</div><div class="val" id="kLoans">0</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="tabs">
+          <button class="active" data-tab="overview">📊 Overview</button>
+          <button data-tab="users">👥 Clients</button>
+          <button data-tab="transactions">🧾 Transactions</button>
+          <button data-tab="loans">🏦 Loans</button>
+          <button data-tab="messages">💬 Messages</button>
+          <button data-tab="outbox">📧 Outbox</button>
+          <button data-tab="settings">⚙️ Settings</button>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div class="tab-pane active" id="tab-overview">
+          <div class="panel-body">
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:14px;">Platform Snapshot</h3>
+            <div class="stat-mini">
+              <div class="dash-card"><div class="lbl">Active Clients</div><div class="val" id="kActive">0</div></div>
+              <div class="dash-card"><div class="lbl">Total Withdrawals</div><div class="val" id="kWithdrawals">£0.00</div></div>
+              <div class="dash-card"><div class="lbl">Referral Rewards Paid</div><div class="val gold" id="kReferrals">£0.00</div></div>
+              <div class="dash-card"><div class="lbl">Messages</div><div class="val" id="kMessages">0</div></div>
+            </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:24px 0;" />
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Latest Activity</h3>
+            <div style="overflow-x:auto;">
+              <table class="data" id="activityTable">
+                <thead><tr><th>Date</th><th>Client</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- USERS -->
+        <div class="tab-pane" id="tab-users">
+          <div class="panel-body">
+            <div class="filter-row">
+              <input type="text" id="userSearch" placeholder="Search by name, email, member ID or account number…" oninput="renderUsers()" />
+              <select id="userStatusFilter" onchange="renderUsers()">
+                <option value="">All statuses</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+              </select>
+              <select id="userKycFilter" onchange="renderUsers()">
+                <option value="">All KYC</option>
+                <option value="pending">Pending</option>
+                <option value="verified">Verified</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data" id="usersTable">
+                <thead><tr><th>Client</th><th>Member ID</th><th>Balance</th><th>KYC</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRANSACTIONS -->
+        <div class="tab-pane" id="tab-transactions">
+          <div class="panel-body">
+            <div class="filter-row">
+              <input type="text" id="txSearch" placeholder="Search by client, note or reference…" oninput="renderTx()" />
+              <select id="txTypeFilter" onchange="renderTx()">
+                <option value="">All types</option>
+                <option value="deposit">Deposit</option>
+                <option value="withdrawal">Withdrawal</option>
+                <option value="bonus">Bonus</option>
+                <option value="referral">Referral</option>
+                <option value="profit">Profit</option>
+              </select>
+              <select id="txStatusFilter" onchange="renderTx()">
+                <option value="">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="completed">Completed</option>
+                <option value="declined">Declined</option>
+                <option value="rejected">Rejected</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="reversed">Reversed</option>
+              </select>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data" id="txTable">
+                <thead><tr><th>Date</th><th>Client</th><th>Type</th><th>Note</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOANS -->
+        <div class="tab-pane" id="tab-loans">
+          <div class="panel-body">
+            <div class="filter-row">
+              <input type="text" id="loanSearch" placeholder="Search by client or product…" oninput="renderLoans()" />
+              <select id="loanStatusFilter" onchange="renderLoans()">
+                <option value="">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data" id="loansTable">
+                <thead><tr><th>Date</th><th>Client</th><th>Product</th><th>Amount</th><th>Term</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- MESSAGES -->
+        <div class="tab-pane" id="tab-messages">
+          <div class="panel-body">
+            <p class="muted" style="margin-bottom:16px;">Client support messages. Reply to a thread to send a notification and email to the client.</p>
+            <div id="msgList"></div>
+          </div>
+        </div>
+
+        <!-- OUTBOX -->
+        <div class="tab-pane" id="tab-outbox">
+          <div class="panel-body">
+            <p class="muted" style="margin-bottom:16px;">Simulated email outbox — every message the platform has "sent".</p>
+            <div style="overflow-x:auto;">
+              <table class="data" id="outboxTable">
+                <thead><tr><th>Date</th><th>To</th><th>Subject</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div class="tab-pane" id="tab-settings">
+          <div class="panel-body">
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Platform Settings</h3>
+            <div class="kv">
+              <div class="row"><span>Platform Name</span><span>Meridian Capital Partners</span></div>
+              <div class="row"><span>Regulator</span><span>Financial Conduct Authority (FCA)</span></div>
+              <div class="row"><span>Deposit Protection</span><span>FSCS — £85,000 per eligible depositor</span></div>
+              <div class="row"><span>Base Currency</span><span>GBP (£)</span></div>
+              <div class="row"><span>Welcome Bonus</span><span>£150</span></div>
+              <div class="row"><span>Referral Reward</span><span>£50 per approved referral</span></div>
+              <div class="row"><span>Loan Arrangement Fee</span><span>5%</span></div>
+              <div class="row"><span>Admin Email</span><span id="setAdminEmail">—</span></div>
+            </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:22px 0;" />
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">Contact Details</h3>
+            <p style="color:var(--ink-soft);font-size:13px;margin-bottom:14px;">These appear in the top bar and contact section on every page. Changes go live immediately.</p>
+            <div class="form-group"><label>Phone Number</label><input type="text" id="ctPhone" placeholder="+44 20 7946 0958" /></div>
+            <div class="form-group"><label>Email Address</label><input type="text" id="ctEmail" placeholder="hello@meridiancapital.co.uk" /></div>
+            <div class="form-group"><label>Office Address</label><input type="text" id="ctAddress" placeholder="1 Canada Square, Canary Wharf, London E14 5AB" /></div>
+            <div class="form-group"><label>Opening Hours</label><input type="text" id="ctHours" placeholder="Mon–Fri, 9:00 AM – 5:30 PM" /></div>
+            <button class="btn btn-gold" onclick="saveContact()">Save Contact Details</button>
+            <div class="alert success" id="ctOk" style="margin-top:14px;"></div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:22px 0;" />
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Broadcast Notification</h3>
+            <div class="form-group"><label>Title</label><input type="text" id="bcTitle" placeholder="e.g. Scheduled maintenance" /></div>
+            <div class="form-group"><label>Message</label><input type="text" id="bcBody" placeholder="Message shown to all clients" /></div>
+            <button class="btn btn-gold" onclick="broadcast()">Send to All Clients</button>
+            <div class="alert success" id="bcOk" style="margin-top:14px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <span>© 2025 Meridian Capital Partners — Administrator Console.</span>
+        <span>Authorised and regulated by the Financial Conduct Authority (FCA).</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/translations.js?v=3"></script>
+  <script src="../assets/js/app.js?v=3"></script>
+  <script src="../assets/js/api.js?v=1"></script>
+  <script>
+    var ADMIN = null, USERS = [], TX = [], LOANS = [], CHATS = [], OUTBOX = [], STATS = {};
+
+    function money(n) { return EV.util.fmtMoney(n, '£'); }
+    function esc(s) { return EV.util.esc(s == null ? '' : String(s)); }
+    function pillClass(s) { s = String(s || '').toLowerCase(); return (s === 'completed' || s === 'approved' || s === 'verified' || s === 'active') ? 'ok' : (s === 'rejected' || s === 'declined' || s === 'suspended' || s === 'cancelled' || s === 'reversed') ? 'bad' : 'warn'; }
+    function pill(s) { return '<span class="pill ' + pillClass(s) + '">' + esc(s) + '</span>'; }
+    function userById(id) { for (var i = 0; i < USERS.length; i++) if (String(USERS[i].id) === String(id)) return USERS[i]; return null; }
+    function userName(id) { var u = userById(id); return u ? u.name : '—'; }
+    function logout() { EV.api.logout(); location.href = 'login.html'; }
+
+    function load() {
+      if (!EV.api.token()) { location.href = 'login.html'; return; }
+      EV.api.me().then(function (u) {
+        if (u.role !== 'admin') { EV.api.logout(); location.href = 'login.html'; return; }
+        ADMIN = u;
+        document.getElementById('adminChip').textContent = '🛡️ ' + u.name;
+        document.getElementById('setAdminEmail').textContent = u.email;
+        return Promise.all([
+          EV.api.admin.stats(), EV.api.admin.users(), EV.api.admin.transactions(),
+          EV.api.admin.loans(), EV.api.admin.chats(), EV.api.admin.outbox()
+        ]);
+      }).then(function (res) {
+        if (!res) return;
+        STATS = res[0] || {};
+        USERS = (res[1] && res[1].users) || [];
+        TX = (res[2] && res[2].transactions) || [];
+        LOANS = (res[3] && res[3].loans) || [];
+        CHATS = (res[4] && res[4].chats) || [];
+        OUTBOX = (res[5] && res[5].emails) || [];
+        render();
+      }).catch(function (ex) {
+        if (ex && ex.status === 401) { EV.api.logout(); location.href = 'login.html'; return; }
+        document.getElementById('adminSub').textContent = 'Could not load platform data. ' + ((ex && ex.message) || '');
+      });
+    }
+
+    function render() {
+      document.getElementById('adminSub').textContent = USERS.length + ' clients · ' + TX.length + ' transactions · ' + LOANS.length + ' loans · ' + CHATS.length + ' conversations';
+
+      var dep = TX.filter(function (t) { return t.type === 'deposit'; }).reduce(function (a, t) { return a + t.amount; }, 0);
+      var wdr = TX.filter(function (t) { return t.type === 'withdrawal'; }).reduce(function (a, t) { return a + t.amount; }, 0);
+      var ref = TX.filter(function (t) { return t.type === 'referral'; }).reduce(function (a, t) { return a + t.amount; }, 0);
+      var pending = (STATS.pendingDeposits || 0) + (STATS.pendingWithdrawals || 0) + (STATS.pendingLoans || 0);
+
+      document.getElementById('kClients').textContent = STATS.users != null ? STATS.users : USERS.length;
+      document.getElementById('kDeposits').textContent = money(dep);
+      document.getElementById('kPending').textContent = pending;
+      document.getElementById('kLoans').textContent = LOANS.length;
+      document.getElementById('kActive').textContent = STATS.online != null ? STATS.online : USERS.filter(function (u) { return u.status === 'active'; }).length;
+      document.getElementById('kWithdrawals').textContent = money(wdr);
+      document.getElementById('kReferrals').textContent = money(ref);
+      document.getElementById('kMessages').textContent = STATS.openChats != null ? STATS.openChats : CHATS.length;
+
+      var act = TX.slice(0, 8).map(function (t) {
+        return '<tr><td>' + EV.util.fmtDate(t.created_at) + '</td><td>' + esc(userName(t.user_id)) + '</td><td>' + esc(t.type) + '</td><td>' + money(t.amount) + '</td><td>' + pill(t.status) + '</td></tr>';
+      }).join('');
+      document.getElementById('activityTable').querySelector('tbody').innerHTML = act || '<tr><td colspan="5" class="empty">No activity yet.</td></tr>';
+
+      renderUsers(); renderTx(); renderLoans(); renderMessages(); renderOutbox();
+    }
+
+    /* ---------- USERS ---------- */
+    function renderUsers() {
+      var q = (document.getElementById('userSearch').value || '').toLowerCase();
+      var sf = document.getElementById('userStatusFilter').value;
+      var kf = document.getElementById('userKycFilter').value;
+      var users = USERS.filter(function (u) {
+        if (sf && u.status !== sf) return false;
+        if (kf && u.kyc !== kf) return false;
+        if (q) {
+          var hay = (u.name + ' ' + u.email + ' ' + u.memberId + ' ' + u.accountNumber).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+      var rows = users.map(function (u) {
+        return '<tr>' +
+          '<td><b>' + esc(u.name) + '</b><div class="mini">' + esc(u.email) + '</div></td>' +
+          '<td>' + esc(u.memberId) + '</td>' +
+          '<td>' + money(u.balance) + '</td>' +
+          '<td>' + pill(u.kyc) + '</td>' +
+          '<td>' + pill(u.status) + '</td>' +
+          '<td><div class="row-actions">' +
+            '<button class="btn btn-primary btn-xs" onclick="viewUser(\'' + u.id + '\')">View</button>' +
+            '<button class="btn btn-outline-dark btn-xs" onclick="toggleKyc(\'' + u.id + '\')">KYC</button>' +
+            '<button class="btn btn-outline-dark btn-xs" onclick="toggleStatus(\'' + u.id + '\')">' + (u.status === 'active' ? 'Suspend' : 'Activate') + '</button>' +
+            '<button class="btn btn-gold btn-xs" onclick="creditUser(\'' + u.id + '\')">Credit</button>' +
+          '</div></td></tr>';
+      }).join('');
+      document.getElementById('usersTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="6" class="empty">No clients match your filters.</td></tr>';
+    }
+
+    function viewUser(id) {
+      var u = userById(id); if (!u) return;
+      var bank = u.bank || {};
+      var lines = [
+        'Name: ' + u.name, 'Email: ' + u.email, 'Phone: ' + (u.phone || '—'),
+        'Member ID: ' + u.memberId, 'Account: ' + u.accountNumber,
+        'Balance: ' + money(u.balance), 'Currency: ' + u.currency,
+        'KYC: ' + u.kyc, 'Status: ' + u.status,
+        'IBAN: ' + (bank.iban || '—'), 'Sort Code: ' + (bank.sortCode || '—'), 'Account No: ' + (bank.accountNumber || '—'),
+        'Referral Code: ' + u.referralCode, 'Joined: ' + EV.util.fmtDate(u.createdAt),
+        'Transactions: ' + (u.tx_count != null ? u.tx_count : '—')
+      ];
+      alert(lines.join('\n'));
+    }
+
+    function toggleKyc(id) {
+      var u = userById(id); if (!u) return;
+      var next = u.kyc === 'verified' ? 'pending' : 'verified';
+      EV.api.admin.setUserKyc(id, next).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+
+    function toggleStatus(id) {
+      var u = userById(id); if (!u) return;
+      var next = u.status === 'active' ? 'suspended' : 'active';
+      EV.api.admin.setUserStatus(id, next).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+
+    function creditUser(id) {
+      var u = userById(id); if (!u) return;
+      var amt = parseFloat(prompt('Amount to credit to ' + u.name + ' (£):', '100'));
+      if (!amt || amt <= 0) return;
+      EV.api.admin.createTx({ user_id: id, type: 'profit', amount: amt, status: 'completed', note: 'Manual credit by administrator' })
+        .then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+
+    /* ---------- TRANSACTIONS ---------- */
+    function renderTx() {
+      var q = (document.getElementById('txSearch').value || '').toLowerCase();
+      var tf = document.getElementById('txTypeFilter').value;
+      var sf = document.getElementById('txStatusFilter').value;
+      var tx = TX.filter(function (t) {
+        if (tf && t.type !== tf) return false;
+        if (sf && t.status !== sf) return false;
+        if (q) {
+          var hay = (userName(t.user_id) + ' ' + (t.note || '') + ' ' + (t.reference || '') + ' ' + t.id).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+      var rows = tx.map(function (t) {
+        return '<tr>' +
+          '<td>' + EV.util.fmtDate(t.created_at) + '</td>' +
+          '<td>' + esc(userName(t.user_id)) + '</td>' +
+          '<td>' + esc(t.type) + '</td>' +
+          '<td class="mini">' + esc(t.note || t.method || '') +
+            (t.admin_note ? '<div style="color:#c0392b;margin-top:3px;"><strong>Reason:</strong> ' + esc(t.admin_note) + '</div>' : '') + '</td>' +
+          '<td>' + money(t.amount) + '</td>' +
+          '<td>' + pill(t.status) + '</td>' +
+          '<td><div class="row-actions">' +
+            (t.status === 'pending'
+              ? '<button class="btn btn-primary btn-xs" onclick="approveTx(\'' + t.id + '\')">Approve</button><button class="btn btn-danger btn-xs" onclick="declineTx(\'' + t.id + '\')">Decline</button>'
+              : '<button class="btn btn-outline-dark btn-xs" onclick="reverseTx(\'' + t.id + '\')">Reverse</button>') +
+          '</div></td></tr>';
+      }).join('');
+      document.getElementById('txTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="7" class="empty">No transactions match your filters.</td></tr>';
+    }
+
+    function approveTx(id) { EV.api.admin.approveTx(id).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); }); }
+
+    /* ---------- REASON MODAL (reverse / decline) ---------- */
+    var _reasonAction = null, _reasonId = null;
+    function openReason(kind, id) {
+      _reasonAction = kind; _reasonId = id;
+      document.getElementById('reasonTitle').textContent = kind === 'reverse' ? 'Reverse Transaction' : 'Decline Request';
+      document.getElementById('reasonSub').textContent = kind === 'reverse'
+        ? 'Provide a reason. The balance will be adjusted and the client will be emailed.'
+        : 'Provide a reason. The client will be emailed.';
+      document.getElementById('reasonText').value = '';
+      var err = document.getElementById('reasonErr');
+      err.className = 'alert error'; err.textContent = '';
+      document.getElementById('reasonModal').style.display = 'flex';
+      setTimeout(function () { document.getElementById('reasonText').focus(); }, 50);
+    }
+    function closeReason() {
+      document.getElementById('reasonModal').style.display = 'none';
+      _reasonAction = null; _reasonId = null;
+    }
+    function confirmReason() {
+      var reason = (document.getElementById('reasonText').value || '').trim();
+      var err = document.getElementById('reasonErr');
+      if (!reason) { err.className = 'alert error show'; err.textContent = 'A reason is required.'; return; }
+      var btn = document.getElementById('reasonConfirm');
+      btn.disabled = true; btn.textContent = 'Working\u2026';
+      var p = (_reasonAction === 'reverse')
+        ? EV.api.admin.reverseTx(_reasonId, reason)
+        : EV.api.admin.declineTx(_reasonId, reason);
+      p.then(function () { btn.disabled = false; btn.textContent = 'Confirm'; closeReason(); load(); })
+       .catch(function (ex) { btn.disabled = false; btn.textContent = 'Confirm'; err.className = 'alert error show'; err.textContent = (ex && ex.message) || 'Failed'; });
+    }
+    function declineTx(id) { openReason('decline', id); }
+    function reverseTx(id) { openReason('reverse', id); }
+
+    /* ---------- LOANS ---------- */
+    function renderLoans() {
+      var q = (document.getElementById('loanSearch').value || '').toLowerCase();
+      var sf = document.getElementById('loanStatusFilter').value;
+      var loans = LOANS.filter(function (l) {
+        if (sf && l.status !== sf) return false;
+        if (q) {
+          var hay = (userName(l.user_id) + ' ' + l.product).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+      var rows = loans.map(function (l) {
+        return '<tr>' +
+          '<td>' + EV.util.fmtDate(l.created_at) + '</td>' +
+          '<td>' + esc(userName(l.user_id)) + '</td>' +
+          '<td>' + esc(l.product) + '</td>' +
+          '<td>' + money(l.amount) + '</td>' +
+          '<td>' + l.term + ' mo</td>' +
+          '<td>' + pill(l.status) + '</td>' +
+          '<td><div class="row-actions">' +
+            (l.status === 'pending'
+              ? '<button class="btn btn-primary btn-xs" onclick="approveLoan(\'' + l.id + '\')">Approve</button><button class="btn btn-danger btn-xs" onclick="declineLoan(\'' + l.id + '\')">Decline</button>'
+              : '—') +
+          '</div></td></tr>';
+      }).join('');
+      document.getElementById('loansTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="7" class="empty">No loan applications match your filters.</td></tr>';
+    }
+
+    function approveLoan(id) { EV.api.admin.approveLoan(id).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); }); }
+    function declineLoan(id) { var r = prompt('Reason for declining (optional):', ''); EV.api.admin.declineLoan(id, r || '').then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); }); }
+
+    /* ---------- MESSAGES ---------- */
+    function renderMessages() {
+      var html = CHATS.map(function (c) {
+        return '<div style="margin-bottom:22px;">' +
+          '<h4 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:10px;">' + esc(c.full_name) +
+          ' <span class="mini">(' + esc(c.email) + ') · ' + (c.total || 0) + ' messages' + (c.unread ? ' · <b>' + c.unread + ' unread</b>' : '') + '</span></h4>' +
+          '<div class="msg-thread"><div class="head"><span>Latest</span><span>' + esc(c.last_message || '') + '</span></div></div>' +
+          '<div class="msg-thread"><div class="reply"><input type="text" id="reply-' + c.user_id + '" placeholder="Type a reply…" /><button class="btn btn-primary btn-sm" onclick="replyMsg(\'' + c.user_id + '\')">Send</button></div></div>' +
+          '</div>';
+      }).join('');
+      document.getElementById('msgList').innerHTML = html || '<div class="empty">No client messages yet.</div>';
+    }
+
+    function replyMsg(uid) {
+      var el = document.getElementById('reply-' + uid);
+      var body = el.value.trim(); if (!body) return;
+      EV.api.admin.reply(uid, body).then(function () { el.value = ''; load(); }).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+
+    /* ---------- OUTBOX ---------- */
+    function renderOutbox() {
+      var rows = OUTBOX.map(function (m) {
+        return '<tr><td>' + EV.util.fmtDateTime(m.created_at) + '</td><td>' + esc(m.to_email) + '</td><td>' + esc(m.subject) + '</td></tr>';
+      }).join('');
+      document.getElementById('outboxTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="3" class="empty">Outbox is empty.</td></tr>';
+    }
+
+    /* ---------- SETTINGS ---------- */
+    function broadcast() {
+      var t = document.getElementById('bcTitle').value.trim();
+      var b = document.getElementById('bcBody').value.trim();
+      var ok = document.getElementById('bcOk');
+      ok.classList.remove('show');
+      if (!t || !b) { ok.className = 'alert error show'; ok.textContent = 'Enter both a title and a message.'; return; }
+      EV.api.admin.broadcast(t, b).then(function (r) {
+        ok.className = 'alert success show';
+        ok.textContent = (r && r.message) || 'Broadcast sent.';
+        document.getElementById('bcTitle').value = ''; document.getElementById('bcBody').value = '';
+      }).catch(function (ex) {
+        ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Could not send broadcast.';
+      });
+    }
+
+    /* ---------- CONTACT DETAILS ---------- */
+    function loadContact() {
+      EV.api.admin.settings().then(function (r) {
+        var s = (r && r.settings) || {};
+        document.getElementById('ctPhone').value = s.contact_phone || '';
+        document.getElementById('ctEmail').value = s.contact_email || '';
+        document.getElementById('ctAddress').value = s.contact_address || '';
+        document.getElementById('ctHours').value = s.contact_hours || '';
+      }).catch(function () {});
+    }
+    function saveContact() {
+      var ok = document.getElementById('ctOk');
+      ok.classList.remove('show');
+      var payload = {
+        contact_phone: document.getElementById('ctPhone').value.trim(),
+        contact_email: document.getElementById('ctEmail').value.trim(),
+        contact_address: document.getElementById('ctAddress').value.trim(),
+        contact_hours: document.getElementById('ctHours').value.trim()
+      };
+      EV.api.admin.saveSettings(payload).then(function (r) {
+        ok.className = 'alert success show';
+        ok.textContent = (r && r.message) || 'Contact details saved.';
+        /* refresh the live topbar/contact values on this page immediately */
+        try { localStorage.removeItem('meridian_capital_site'); } catch (e) {}
+        if (window.EV_SITE) window.EV_SITE.contact = {
+          phone: payload.contact_phone, email: payload.contact_email,
+          address: payload.contact_address, hours: payload.contact_hours
+        };
+      }).catch(function (ex) {
+        ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Could not save.';
+      });
+    }
+
+    /* ---------- TOOLS ---------- */
+    function sendRules() {
+      if (!confirm('Email the Rules & Regulations to all active clients?')) return;
+      EV.api.admin.sendRules().then(function (r) { alert((r && r.message) || 'Sent.'); }).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+    function backupDb() {
+      window.open('/api/admin/backup?token=' + encodeURIComponent(EV.api.token()), '_blank');
+    }
+
+    /* ---------- TABS ---------- */
+    document.getElementById('tabs').addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      document.querySelectorAll('#tabs button').forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(function (p) { p.classList.remove('active'); });
+      document.getElementById('tab-' + b.getAttribute('data-tab')).classList.add('active');
+      if (b.getAttribute('data-tab') === 'settings') loadContact();
+    });
+
+    load();
+  </script>
+<script src="../assets/js/site.js?v=1"></script>
+
+  <!-- ============ REASON MODAL (reverse / decline) ============ -->
+  <div class="ev-modal-overlay" id="reasonModal" style="display:none;">
+    <div class="ev-modal">
+      <h3 id="reasonTitle" style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">Reverse Transaction</h3>
+      <p id="reasonSub" style="color:var(--ink-soft);font-size:13px;margin-bottom:14px;">Provide a reason. This will be recorded and emailed to the client.</p>
+      <div class="form-group">
+        <label>Reason <span style="color:#c0392b;">*</span></label>
+        <textarea id="reasonText" rows="4" placeholder="e.g. Duplicate deposit — funds returned to sender." style="width:100%;padding:10px 12px;border:1px solid #d7e0ea;border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+      </div>
+      <div class="alert error" id="reasonErr" style="margin-bottom:12px;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-outline-dark" onclick="closeReason()">Cancel</button>
+        <button class="btn btn-danger" id="reasonConfirm" onclick="confirmReason()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .ev-modal-overlay { position:fixed; inset:0; background:rgba(10,31,51,.55); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .ev-modal { background:#fff; border-radius:16px; padding:26px; width:100%; max-width:480px; box-shadow:0 24px 60px rgba(10,31,51,.35); }
+    .ev-modal .alert { display:none; }
+    .ev-modal .alert.show { display:block; }
+  </style>
+</body>
+</html>

@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+  <title>Open Your Account — Meridian Capital Partners</title>
+  <meta name="description" content="Open your Meridian Capital Partners investment account. New members receive a £150 welcome bonus credited instantly." />
+  <link rel="stylesheet" href="assets/css/style.css" />
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <span data-ev-contact="phone" data-ev-icon="📞">📞 +44 20 7946 0958</span>
+      <span data-ev-contact="email" data-ev-icon="✉️">✉️ hello@meridiancapital.co.uk</span>
+      <span class="topbar-auth"><a href="login.html">Client Login</a> · <a href="index.html">Home</a></span>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html" class="logo">
+        <div class="logo-mark">MC</div>
+        <div class="logo-text">Meridian Capital<small>UK Investment Platform</small></div>
+      </a>
+      <div class="nav-cta">
+        <a href="index.html" class="btn btn-outline-dark btn-sm">Back to Website</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="auth-hero">
+    <div class="container">
+      <h1>Open Your Investment Account</h1>
+      <p>Join investors across the UK and worldwide. Your dashboard, wallets and support are ready in under a minute.</p>
+      <span class="bonus-chip">🎁 New members receive a £150 welcome bonus — credited instantly</span>
+    </div>
+  </section>
+
+  <div class="container">
+    <form class="auth-card wide" id="signupForm" autocomplete="on">
+      <h2>Create Your Account</h2>
+      <div class="sub">Available worldwide — your dashboard currency adapts to your country.</div>
+      <div class="alert error" id="err"></div>
+      <div class="alert success" id="ok"></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="full_name" placeholder="Jane Smith" required />
+        </div>
+        <div class="form-group">
+          <label>Phone (optional)</label>
+          <input type="tel" id="phone" placeholder="+44 7700 900000" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="you@email.com" required />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="password" placeholder="6+ characters" minlength="6" required />
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" id="password2" placeholder="Repeat password" minlength="6" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Country of Residence</label>
+          <select id="country" required>
+            <option value="">Select your country…</option>
+          </select>
+          <div class="currency-preview" id="curPreview"></div>
+          <div class="hint">Your account currency is set from your country (e.g. 🇬🇧 UK → £ GBP, 🇺🇸 US → $ USD).</div>
+        </div>
+        <div class="form-group">
+          <label>Referral Code (optional)</label>
+          <input type="text" id="referral" placeholder="MC-XXXXXX" />
+          <div class="hint">Have a friend's code? Enter it and they earn £50.</div>
+        </div>
+      </div>
+
+      <div class="form-group agree-row">
+        <input type="checkbox" id="agreeRules" required />
+        <label for="agreeRules">I have read and agree to the <a href="legal/terms.html" target="_blank">Terms &amp; Conditions</a>, <a href="legal/privacy.html" target="_blank">Privacy Policy</a> and <a href="legal/risk.html" target="_blank">Risk Disclosure</a>, and confirm I am 18+.</label>
+      </div>
+
+      <button class="btn btn-gold" type="submit" id="submitBtn" style="width:100%;font-size:1.05rem;">Create Account &amp; Claim £150 Bonus</button>
+
+      <div class="auth-foot">
+        Already have an account? <a href="login.html">Sign in here</a>
+      </div>
+    </form>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <span>© 2025 Meridian Capital Partners. All rights reserved. Registered in England &amp; Wales.</span>
+        <span>Capital at risk. Investing involves risk, including possible loss of principal.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/translations.js?v=3"></script>
+  <script src="assets/js/app.js?v=3"></script>
+  <script src="assets/js/countries.js"></script>
+  <script src="assets/js/api.js?v=1"></script>
+  <script>
+    /* Populate country dropdown */
+    var sel = document.getElementById('country');
+    Object.keys(EV_COUNTRIES).forEach(function (code) {
+      var c = EV_COUNTRIES[code];
+      var opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = c.flag + '  ' + c.n + ' — ' + c.cur;
+      sel.appendChild(opt);
+    });
+    sel.value = 'GB';
+    sel.addEventListener('change', function () {
+      var p = document.getElementById('curPreview');
+      if (!sel.value) { p.style.display = 'none'; return; }
+      var c = EV_COUNTRIES[sel.value];
+      p.style.display = 'block';
+      p.textContent = 'Your dashboard will display in ' + c.cur + ' (' + c.name + ')';
+    });
+    sel.dispatchEvent(new Event('change'));
+
+    /* Pre-fill referral code from ?ref= */
+    (function () {
+      var m = /[?&]ref=([^&]+)/.exec(window.location.search);
+      if (m) document.getElementById('referral').value = decodeURIComponent(m[1]);
+    })();
+
+    document.getElementById('signupForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var err = document.getElementById('err'), ok = document.getElementById('ok');
+      err.classList.remove('show'); ok.classList.remove('show');
+      var pw = document.getElementById('password').value,
+          pw2 = document.getElementById('password2').value;
+      if (!document.getElementById('agreeRules').checked) {
+        err.textContent = 'Please tick the box to confirm you have read and agree to our Terms & Conditions.';
+        err.classList.add('show');
+        document.getElementById('agreeRules').focus();
+        return;
+      }
+      if (pw !== pw2) { err.textContent = 'Passwords do not match.'; err.classList.add('show'); return; }
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.textContent = 'Creating your account…';
+      EV.api.signup({
+        full_name: document.getElementById('full_name').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        password: pw,
+        country: sel.value,
+        ref: document.getElementById('referral').value.trim() || null
+      }).then(function () {
+        btn.disabled = false; btn.textContent = 'Create Account & Claim £150 Bonus';
+        ok.textContent = 'Account created! Your £150 welcome bonus has been credited. Redirecting to your dashboard…';
+        ok.classList.add('show');
+        setTimeout(function () { window.location.href = 'user/dashboard.html'; }, 1200);
+      }).catch(function (ex) {
+        btn.disabled = false; btn.textContent = 'Create Account & Claim £150 Bonus';
+        err.textContent = (ex && ex.message) || 'Sign-up failed. Please try again.';
+        err.classList.add('show');
+      });
+    });
+  </script>
+<script src="assets/js/site.js?v=1"></script>
+</body>
+</html>

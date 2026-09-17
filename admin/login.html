@@ -1,0 +1,119 @@
+﻿<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg" />
+  <title>Administrator Login — Meridian Capital Partners</title>
+  <meta name="description" content="Meridian Capital Partners administrator sign-in." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .admin-hero { background: linear-gradient(135deg, var(--brand-dark), #06121f); color: #fff; padding: 54px 0 46px; text-align: center; }
+    .admin-hero h1 { font-family: var(--font-head); font-size: 2.1rem; margin-bottom: 8px; }
+    .admin-hero p { color: rgba(255,255,255,.72); }
+    .admin-hero .shield { font-size: 2.4rem; margin-bottom: 10px; }
+    .admin-note { max-width: 520px; margin: 0 auto 40px; background: #fff8e6; border: 1px solid #f0dca0; border-radius: var(--radius); padding: 14px 18px; font-size: .84rem; color: #7a5c00; }
+    .admin-note code { background: #fff; padding: 2px 6px; border-radius: 6px; border: 1px solid #f0dca0; }
+  </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <span>🔒 Secure Administrator Area</span>
+      <span class="topbar-auth"><a href="../index.html">Website</a> · <a href="../login.html">Client Login</a></span>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="../index.html" class="logo">
+        <div class="logo-mark">MC</div>
+        <div class="logo-text">Meridian Capital<small>UK Investment Platform</small></div>
+      </a>
+      <div class="nav-cta">
+        <span class="badge-uk">🛡️ Admin</span>
+        <a href="../index.html" class="btn btn-outline-dark btn-sm">Back to Website</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="admin-hero">
+    <div class="container">
+      <div class="shield">🛡️</div>
+      <h1>Administrator Sign-In</h1>
+      <p>Restricted access — authorised personnel only.</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="admin-note">
+      <b>Demo credentials:</b> email <code>admin@meridiancapital.co.uk</code> · password <code>admin123</code>. Replace these before going live.
+    </div>
+
+    <form class="auth-card" id="adminForm">
+      <h2>Admin Login</h2>
+      <div class="sub">Enter your administrator credentials to continue.</div>
+      <div class="alert error" id="err"></div>
+      <div class="alert success" id="ok"></div>
+
+      <div class="form-group">
+        <label>Administrator Email</label>
+        <input type="email" id="email" placeholder="admin@meridiancapital.co.uk" required />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Your password" required />
+      </div>
+
+      <button class="btn btn-gold" type="submit" id="submitBtn" style="width:100%;font-size:1.05rem;">Sign In to Admin</button>
+
+      <div class="auth-foot">
+        Not an administrator? <a href="../login.html">Client login</a>
+      </div>
+    </form>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <span>© 2025 Meridian Capital Partners. All rights reserved. Registered in England &amp; Wales.</span>
+        <span>Authorised and regulated by the Financial Conduct Authority (FCA).</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/translations.js?v=3"></script>
+  <script src="../assets/js/app.js?v=3"></script>
+  <script src="../assets/js/api.js?v=1"></script>
+  <script>
+    document.getElementById('adminForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var err = document.getElementById('err'), ok = document.getElementById('ok');
+      err.classList.remove('show'); ok.classList.remove('show');
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.textContent = 'Verifying…';
+      EV.api.login(document.getElementById('email').value.trim(), document.getElementById('password').value)
+        .then(function (res) {
+          if (!res.user || res.user.role !== 'admin') {
+            EV.api.logout();
+            btn.disabled = false; btn.textContent = 'Sign In to Admin';
+            err.textContent = 'This account does not have administrator privileges.';
+            err.classList.add('show');
+            return;
+          }
+          ok.textContent = 'Access granted. Loading admin console…'; ok.classList.add('show');
+          setTimeout(function () { window.location.href = 'dashboard.html'; }, 700);
+        })
+        .catch(function (ex) {
+          btn.disabled = false; btn.textContent = 'Sign In to Admin';
+          err.textContent = (ex && ex.message) || 'Login failed.';
+          err.classList.add('show');
+        });
+    });
+  </script>
+<script src="../assets/js/site.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "meridian-capital-platform",
+  "version": "1.0.0",
+  "description": "Meridian Capital Partners investment platform backend (Express + SQLite + JWT + Socket.IO)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^8.5.1",
+    "nodemailer": "^6.9.13",
+    "socket.io": "^4.7.5"
+  }
+}
