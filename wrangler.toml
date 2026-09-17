@@ -1,0 +1,21 @@
+# ============================================================
+# Meridian Capital Partners — Cloudflare Pages + D1
+# Free-tier deployment (Pages static + Pages Functions + D1)
+# ============================================================
+name = "meridian-capital-platform"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+# ---- D1 database binding (filled in after `wrangler d1 create`) ----
+[[d1_databases]]
+binding = "DB"
+database_name = "meridian-capital-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# ---- Non-secret environment variables ----
+# Secrets (JWT_SECRET, ADMIN_PASSWORD) are set with:
+#   npx wrangler pages secret put JWT_SECRET
+#   npx wrangler pages secret put ADMIN_PASSWORD
+[vars]
+ADMIN_EMAIL = "admin@meridianncapital.com"

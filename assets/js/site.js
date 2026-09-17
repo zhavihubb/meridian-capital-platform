@@ -11,7 +11,7 @@
   var CACHE_KEY = 'meridian_capital_site';
   var DEFAULTS = {
     phone: '+44 20 7946 0958',
-    email: 'hello@meridiancapital.co.uk',
+    email: 'hello@meridianncapital.com',
     address: '1 Canada Square, Canary Wharf, London E14 5AB',
     hours: 'Mon\u2013Fri, 9:00 AM \u2013 5:30 PM'
   };

@@ -33,3 +33,9 @@ Thumbs.db
 tmp/
 temp/
 .cache/
+
+# Cloudflare build output + local state
+dist/
+.wrangler/
+.dev.vars
+backup.sql

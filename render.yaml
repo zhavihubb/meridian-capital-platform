@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: meridian-capital-platform
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@meridianncapital.com
+      - key: ADMIN_PASSWORD
+        sync: false
+    disk:
+      name: meridian-data
+      mountPath: /app/server/data
+      sizeGB: 1

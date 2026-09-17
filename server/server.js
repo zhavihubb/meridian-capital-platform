@@ -166,7 +166,7 @@ CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id, created_at D
 /* ---------------- Seed ---------------- */
 function seed() {
   const now = Date.now();
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@meridiancapital.co.uk';
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@meridianncapital.com';
   const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
   if (!db.prepare("SELECT id FROM users WHERE role = 'admin'").get()) {
     db.prepare(`INSERT INTO users (full_name,email,password_hash,role,country,currency_code,currency_symbol,fx_rate,balance,account_number,member_id,referral_code,kyc,sort_code,iban,bic,bank_holder,created_at,last_seen)
@@ -185,14 +185,14 @@ function seed() {
     if (!db.prepare('SELECT key FROM settings WHERE key=?').get(k)) db.prepare('INSERT INTO settings (key,value) VALUES (?,?)').run(k, v);
   };
   s('smtp_host', ''); s('smtp_port', '587'); s('smtp_user', ''); s('smtp_pass', '');
-  s('smtp_from', 'Meridian Capital Partners <no-reply@meridiancapital.co.uk>');
+  s('smtp_from', 'Meridian Capital Partners <no-reply@meridianncapital.com>');
   s('admin_notify_email', adminEmail);
   s('site_url', 'http://localhost:' + PORT);
   s('signup_bonus', String(SIGNUP_BONUS_GBP));
   s('referral_bonus', String(REFERRAL_BONUS_GBP));
   /* Editable public contact details (shown in topbar + contact section on every page) */
   s('contact_phone', '+44 20 7946 0958');
-  s('contact_email', 'hello@meridiancapital.co.uk');
+  s('contact_email', 'hello@meridianncapital.com');
   s('contact_address', '1 Canada Square, Canary Wharf, London E14 5AB');
   s('contact_hours', 'Mon\u2013Fri, 9:00 AM \u2013 5:30 PM');
 }
@@ -266,7 +266,7 @@ function relTime(ts) {
 /* ---------------- Email engine ---------------- */
 async function sendMail(to, subject, html) {
   const host = getSetting('smtp_host');
-  const from = getSetting('smtp_from') || 'Meridian Capital Partners <no-reply@meridiancapital.co.uk>';
+  const from = getSetting('smtp_from') || 'Meridian Capital Partners <no-reply@meridianncapital.com>';
   const row = db.prepare('INSERT INTO email_outbox (to_email,subject,html,status,created_at) VALUES (?,?,?,?,?)')
     .run(to, subject, html, 'saved', nowMs());
   if (!host) return { id: row.lastInsertRowid, sent: false, reason: 'SMTP not configured \u2014 saved to outbox' };
@@ -375,7 +375,7 @@ app.post('/api/leads', (req, res) => {
   if (!name || !email) return res.status(400).json({ error: 'Name and email are required' });
   db.prepare('INSERT INTO admin_alerts (kind,user_id,message,created_at) VALUES (?,?,?,?)')
     .run('lead', null, 'New enquiry from ' + name + ' (' + email + ') \u2014 ' + interest + (message ? ': ' + message.slice(0, 200) : ''), nowMs());
-  const adminEmail = getSetting('admin_notify_email') || 'admin@meridiancapital.co.uk';
+  const adminEmail = getSetting('admin_notify_email') || 'admin@meridianncapital.com';
   sendMail(adminEmail, 'New website enquiry \u2014 ' + name,
     emailTemplate('New Website Enquiry',
       '<p><b>' + name + '</b> (' + email + ') is interested in <b>' + interest + '</b>.</p>' +
@@ -1052,7 +1052,7 @@ app.post('/api/admin/settings', auth, adminOnly, (req, res) => {
 });
 
 app.post('/api/admin/settings/test-email', auth, adminOnly, function (req, res) {
-  const to = getSetting('admin_notify_email') || 'admin@meridiancapital.co.uk';
+  const to = getSetting('admin_notify_email') || 'admin@meridianncapital.com';
   sendMail(to, 'SMTP test \u2014 Meridian Capital Partners',
     emailTemplate('SMTP Test', '<p>This is a test message from your Meridian Capital Partners admin dashboard. If you can read this, SMTP is working.</p>', null, null))
     .then(function (r) {
@@ -1079,7 +1079,7 @@ app.get('/api/site', (req, res) => {
   res.json({
     contact: {
       phone: getSetting('contact_phone') || '+44 20 7946 0958',
-      email: getSetting('contact_email') || 'hello@meridiancapital.co.uk',
+      email: getSetting('contact_email') || 'hello@meridianncapital.com',
       address: getSetting('contact_address') || '1 Canada Square, Canary Wharf, London E14 5AB',
       hours: getSetting('contact_hours') || 'Mon\u2013Fri, 9:00 AM \u2013 5:30 PM'
     },
@@ -1152,5 +1152,5 @@ server.listen(PORT, function () {
   console.log('  \u279c Website:      http://localhost:' + PORT);
   console.log('  \u279c User login:   http://localhost:' + PORT + '/login.html');
   console.log('  \u279c Admin:        http://localhost:' + PORT + '/admin/login.html');
-  console.log('  \u279c Admin login:  ' + (process.env.ADMIN_EMAIL || 'admin@meridiancapital.co.uk') + ' / ' + (process.env.ADMIN_PASSWORD || 'admin123') + '\n');
+  console.log('  \u279c Admin login:  ' + (process.env.ADMIN_EMAIL || 'admin@meridianncapital.com') + ' / ' + (process.env.ADMIN_PASSWORD || 'admin123') + '\n');
 });

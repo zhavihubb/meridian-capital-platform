@@ -1,0 +1,19 @@
+{
+  "name": "meridian-capital-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Meridian Capital Partners — UK investment platform (Cloudflare Pages + D1)",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "npm run build && wrangler pages dev dist --d1=DB --persist-to=.wrangler/state",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name=meridian-capital-platform",
+    "db:create": "wrangler d1 create meridian-capital-db",
+    "db:init": "wrangler d1 execute meridian-capital-db --file=./schema.sql --remote",
+    "db:init:local": "wrangler d1 execute meridian-capital-db --file=./schema.sql --local",
+    "db:export": "wrangler d1 export meridian-capital-db --remote --output=./backup.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

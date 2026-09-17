@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+server/data/*.db
+server/data/*.db-shm
+server/data/*.db-wal
+server/data/backups
+.git
+.gitignore
+*.log
+.env
+.env.*
+!.env.example
+.screenshots
+outputs

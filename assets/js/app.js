@@ -333,7 +333,7 @@
   /* ==========================================================
      EV.auth — registration / login / session
      ========================================================== */
-  var ADMIN = { email: "admin@meridiancapital.co.uk", password: "admin123", name: "Administrator", role: "admin" };
+  var ADMIN = { email: "admin@meridianncapital.com", password: "admin123", name: "Administrator", role: "admin" };
 
   EV.auth = {
     ADMIN: ADMIN,
