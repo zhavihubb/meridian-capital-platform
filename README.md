@@ -3,7 +3,24 @@
 A UK-focused investment platform (Meridian design system) with a **real
 server-side backend** for permanent, shared data storage.
 
-## Run it
+## Deploy free on Cloudflare (recommended)
+
+The platform runs entirely on Cloudflare's **free tier** — Cloudflare Pages
+(static site) + Pages Functions (API) + D1 (SQLite database). No monthly fees.
+
+See **[DEPLOY-CLOUDFLARE.md](DEPLOY-CLOUDFLARE.md)** for the full step-by-step guide.
+
+```bash
+npm install
+npx wrangler login
+npx wrangler d1 create meridian-capital-db   # paste the id into wrangler.toml
+npx wrangler d1 execute meridian-capital-db --file=./schema.sql --remote
+npx wrangler pages secret put JWT_SECRET
+npx wrangler pages secret put ADMIN_PASSWORD
+npm run deploy
+```
+
+## Run it locally (self-hosted Express version)
 
 ```bash
 cd server
