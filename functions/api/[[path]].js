@@ -98,8 +98,8 @@ async function sendMail(env, to, subject, html) {
     'INSERT INTO email_outbox (to_email,subject,html,status,created_at) VALUES (?,?,?,?,?)',
     to, subject, html, 'saved', nowMs());
   const id = meta.last_row_id;
-  const apiKey = await getSetting(env, 'resend_api_key');
-  const from = await getSetting(env, 'smtp_from') || 'Meridian Capital Partners <no-reply@meridianncapital.com>';
+  const apiKey = (await getSetting(env, 'resend_api_key')) || env.RESEND_API_KEY || '';
+  const from = (await getSetting(env, 'smtp_from')) || env.MAIL_FROM || 'Meridian Capital Partners <no-reply@meridianncapital.com>';
   if (!apiKey) return { id, sent: false, reason: 'Email relay not configured \u2014 saved to outbox' };
   try {
     const res = await fetch('https://api.resend.com/emails', {

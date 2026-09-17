@@ -11,7 +11,7 @@ pages_build_output_dir = "dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "meridian-capital-db"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "8d58c786-872d-4b31-a13f-08b088da1419"
 
 # ---- Non-secret environment variables ----
 # Secrets (JWT_SECRET, ADMIN_PASSWORD) are set with:
