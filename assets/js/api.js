@@ -74,7 +74,18 @@
     applyLoan: function (payload) { return request("POST", "/api/loans", payload); },
     referrals: function () { return request("GET", "/api/referrals"); },
     messages: function () { return request("GET", "/api/messages"); },
-    sendMessage: function (body) { return request("POST", "/api/messages", { body: body }); },
+    sendMessage: function (body, attachment) {
+      var payload = { body: body };
+      if (attachment) {
+        payload.attachment = attachment.data;
+        payload.attachment_name = attachment.name;
+        payload.attachment_type = attachment.type;
+      }
+      return request("POST", "/api/messages", payload);
+    },
+    loanProducts: function () { return request("GET", "/api/loan-products"); },
+    depositMethods: function () { return request("GET", "/api/deposit-methods"); },
+    site: function () { return request("GET", "/api/site"); },
     notifications: function () { return request("GET", "/api/notifications"); },
     broadcasts: function () { return request("GET", "/api/broadcasts"); },
     rules: function () { return request("GET", "/api/rules"); },
@@ -89,6 +100,7 @@
       users: function (q) { return request("GET", "/api/admin/users" + (q ? "?q=" + encodeURIComponent(q) : "")); },
       setUserStatus: function (id, status) { return request("POST", "/api/admin/users/" + id + "/status", { status: status }); },
       setUserKyc: function (id, kyc) { return request("POST", "/api/admin/users/" + id + "/kyc", { kyc: kyc }); },
+      approveUser: function (id, bonus) { return request("POST", "/api/admin/users/" + id + "/approve", { bonus: bonus }); },
       transactions: function (filters) {
         var qs = [];
         if (filters && filters.status) qs.push("status=" + encodeURIComponent(filters.status));
@@ -112,11 +124,23 @@
       addWallet: function (payload) { return request("POST", "/api/admin/wallets", payload); },
       updateWallet: function (id, payload) { return request("PUT", "/api/admin/wallets/" + id, payload); },
       deleteWallet: function (id) { return request("DELETE", "/api/admin/wallets/" + id); },
+      loanProducts: function () { return request("GET", "/api/admin/loan-products"); },
+      addLoanProduct: function (payload) { return request("POST", "/api/admin/loan-products", payload); },
+      updateLoanProduct: function (id, payload) { return request("PUT", "/api/admin/loan-products/" + id, payload); },
+      deleteLoanProduct: function (id) { return request("DELETE", "/api/admin/loan-products/" + id); },
+      depositMethods: function () { return request("GET", "/api/admin/deposit-methods"); },
+      addDepositMethod: function (payload) { return request("POST", "/api/admin/deposit-methods", payload); },
+      updateDepositMethod: function (id, payload) { return request("PUT", "/api/admin/deposit-methods/" + id, payload); },
+      deleteDepositMethod: function (id) { return request("DELETE", "/api/admin/deposit-methods/" + id); },
       chats: function () { return request("GET", "/api/admin/chats"); },
       chat: function (userId) { return request("GET", "/api/admin/chats/" + userId); },
       reply: function (userId, body) { return request("POST", "/api/admin/chats/" + userId + "/reply", { body: body }); },
-      broadcast: function (subject, body) { return request("POST", "/api/admin/broadcasts", { subject: subject, body: body }); },
+      broadcast: function (subject, body, kind, ctaLabel) { return request("POST", "/api/admin/broadcasts", { subject: subject, body: body, kind: kind, cta_label: ctaLabel }); },
       broadcasts: function () { return request("GET", "/api/admin/broadcasts"); },
+      templates: function () { return request("GET", "/api/admin/templates"); },
+      addTemplate: function (payload) { return request("POST", "/api/admin/templates", payload); },
+      updateTemplate: function (id, payload) { return request("PUT", "/api/admin/templates/" + id, payload); },
+      deleteTemplate: function (id) { return request("DELETE", "/api/admin/templates/" + id); },
       alerts: function () { return request("GET", "/api/admin/alerts"); },
       outbox: function () { return request("GET", "/api/admin/outbox"); },
       settings: function () { return request("GET", "/api/admin/settings"); },

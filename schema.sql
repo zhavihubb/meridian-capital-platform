@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS users (
   reset_token TEXT DEFAULT NULL,
   reset_expires REAL DEFAULT NULL,
   last_seen REAL DEFAULT NULL,
+  first_deposit_done INTEGER NOT NULL DEFAULT 0,
   created_at REAL NOT NULL
 );
 
@@ -90,8 +91,42 @@ CREATE TABLE IF NOT EXISTS messages (
   user_id INTEGER NOT NULL REFERENCES users(id),
   sender TEXT NOT NULL,
   body TEXT NOT NULL,
+  attachment TEXT DEFAULT '',
+  attachment_name TEXT DEFAULT '',
+  attachment_type TEXT DEFAULT '',
   read INTEGER NOT NULL DEFAULT 0,
   created_at REAL NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS loan_products (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  icon TEXT DEFAULT '\ud83c\udfe6',
+  min_amount REAL NOT NULL DEFAULT 1000,
+  max_amount REAL NOT NULL DEFAULT 50000,
+  rate TEXT DEFAULT '',
+  term_min INTEGER NOT NULL DEFAULT 12,
+  term_max INTEGER NOT NULL DEFAULT 84,
+  description TEXT DEFAULT '',
+  fee_percent REAL NOT NULL DEFAULT 5,
+  active INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at REAL NOT NULL,
+  updated_at REAL NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS deposit_methods (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  icon TEXT DEFAULT '\ud83d\udcb3',
+  category TEXT DEFAULT 'Bank',
+  details TEXT DEFAULT '',
+  instructions TEXT DEFAULT '',
+  min_amount REAL NOT NULL DEFAULT 100,
+  active INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at REAL NOT NULL,
+  updated_at REAL NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS broadcasts (
@@ -154,6 +189,19 @@ CREATE TABLE IF NOT EXISTS plan_subscriptions (
   status TEXT NOT NULL DEFAULT 'active',
   created_at REAL NOT NULL,
   matures_at REAL DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS message_templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'motivational',
+  cta_label TEXT DEFAULT 'Open My Dashboard',
+  category TEXT DEFAULT 'General',
+  active INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at REAL NOT NULL,
+  updated_at REAL NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_tx_user ON transactions(user_id, created_at DESC);

@@ -12,6 +12,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://meridianncapital.com/" />
   <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/hero3d.css" />
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
 <body class="meridian-home">
@@ -22,9 +23,10 @@
   <!-- ============ TOP BAR ============ -->
   <div class="topbar">
     <div class="container">
-      <span data-ev-contact="phone" data-ev-icon="📞">📞 +44 20 7946 0958</span>
+      <span data-ev-contact="phone" data-ev-icon="📞">📞 0120438957</span>
+      <span data-ev-contact="mobile" data-ev-icon="📱">📱 0120438957</span>
       <span data-ev-contact="email" data-ev-icon="✉️">✉️ hello@meridianncapital.com</span>
-      <span data-ev-contact="address" data-ev-icon="📍">📍 1 Canada Square, Canary Wharf, London E14 5AB</span>
+      <span data-ev-contact="address" data-ev-icon="📍">📍 356 Lever Edge Lane, Bolton, Greater Manchester, BL3 3BQ</span>
       <span class="topbar-auth">
         <a href="login.html" data-i18n="cta.signin">Sign In</a> ·
         <a href="register.html" data-i18n="cta.create">Create Account</a>
@@ -77,16 +79,32 @@
   <!-- ============ HERO ============ -->
   <section class="hero">
     <div class="container">
-      <div class="hero-inner">
-        <span class="eyebrow" data-i18n="hero.eyebrow">🇬🇧 UK-Based · FCA-Aligned Standards</span>
-        <h1 data-i18n="hero.title">Invest With Confidence, From the Heart of London</h1>
-        <p class="lead" data-i18n="hero.lead">
-          Access UK and global investment opportunities with a regulated, transparent platform
-          built for British investors — and open to the world.
-        </p>
-        <div class="hero-actions">
-          <a href="register.html" class="btn btn-gold">Create Account — £150 Bonus</a>
-          <a href="markets.html" class="btn btn-outline" data-i18n="hero.cta2">Explore Investments</a>
+      <div class="hero-grid">
+        <div class="hero-inner">
+          <span class="eyebrow" data-i18n="hero.eyebrow">🇬🇧 UK-Based · FCA-Aligned Standards</span>
+          <h1 data-i18n="hero.title">Invest With Confidence, From the Heart of London</h1>
+          <p class="lead" data-i18n="hero.lead">
+            Access UK and global investment opportunities with a regulated, transparent platform
+            built for British investors — and open to the world.
+          </p>
+          <div class="hero-actions">
+            <a href="register.html" class="btn btn-gold">Create Account — £150 Bonus</a>
+            <a href="markets.html" class="btn btn-outline" data-i18n="hero.cta2">Explore Investments</a>
+          </div>
+        </div>
+        <div class="hero-3d" aria-hidden="true">
+          <div class="scene">
+            <div class="globe"><span class="shine"></span></div>
+            <div class="ring r1"></div>
+            <div class="ring r2"></div>
+            <div class="ring r3"></div>
+            <div class="node n1"></div>
+            <div class="node n2"></div>
+            <div class="node n3"></div>
+          </div>
+          <div class="float-card fc1"><div class="fc-lbl">Portfolio Value</div><div class="fc-val">£128,450</div><div class="fc-sub">▲ 8.4% this month</div></div>
+          <div class="float-card fc2"><div class="fc-lbl">Global Markets</div><div class="fc-val">12 Asset Classes</div><div class="fc-sub">UK · US · EU · Asia</div></div>
+          <div class="float-card fc3"><div class="fc-lbl">Client Funds</div><div class="fc-val">Segregated</div><div class="fc-sub">FCA-aligned standards</div></div>
         </div>
       </div>
       <div class="hero-stats">
@@ -421,9 +439,10 @@
       <div class="contact-info">
         <h3 data-i18n="sec.contact.title">Get In Touch</h3>
         <p>Reach out by phone, email, or the form — we reply within one business day.</p>
-        <div class="contact-line"><div class="dot">📞</div> <span data-ev-contact="phone">+44 20 7946 0958</span></div>
+        <div class="contact-line"><div class="dot">📞</div> <span data-ev-contact="phone">0120438957</span></div>
+        <div class="contact-line"><div class="dot">📱</div> <span data-ev-contact="mobile">0120438957</span></div>
         <div class="contact-line"><div class="dot">✉️</div> <span data-ev-contact="email">hello@meridianncapital.com</span></div>
-        <div class="contact-line"><div class="dot">📍</div> <span data-ev-contact="address">1 Canada Square, Canary Wharf, London E14 5AB</span></div>
+        <div class="contact-line"><div class="dot">📍</div> <span data-ev-contact="address">356 Lever Edge Lane, Bolton, Greater Manchester, BL3 3BQ</span></div>
         <div class="contact-line"><div class="dot">🕘</div> <span data-ev-contact="hours">Mon–Fri, 9:00 AM – 5:30 PM</span></div>
       </div>
       <form class="contact-form" id="leadForm">
@@ -552,7 +571,7 @@
   <!-- ============ SCRIPTS ============ -->
   <script src="assets/js/translations.js?v=3"></script>
   <script src="assets/js/app.js?v=3"></script>
-  <script src="assets/js/api.js?v=1"></script>
+  <script src="assets/js/api.js?v=2"></script>
   <script src="assets/js/extras.js"></script>
   <script>
     EV_I18N.init();
@@ -576,6 +595,6 @@
       });
     });
   </script>
-<script src="assets/js/site.js?v=1"></script>
+<script src="assets/js/site.js?v=2"></script>
 </body>
 </html>

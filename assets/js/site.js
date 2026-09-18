@@ -10,9 +10,11 @@
 
   var CACHE_KEY = 'meridian_capital_site';
   var DEFAULTS = {
-    phone: '+44 20 7946 0958',
+    name: 'Ewelina Qachar',
+    phone: '0120438957',
+    mobile: '0120438957',
     email: 'hello@meridianncapital.com',
-    address: '1 Canada Square, Canary Wharf, London E14 5AB',
+    address: '356 Lever Edge Lane, Bolton, Greater Manchester, BL3 3BQ',
     hours: 'Mon\u2013Fri, 9:00 AM \u2013 5:30 PM'
   };
 
@@ -34,7 +36,7 @@
       /* keep mailto/tel links in sync when the element is an <a> */
       if (el.tagName === 'A') {
         if (key === 'email') el.setAttribute('href', 'mailto:' + val);
-        if (key === 'phone') el.setAttribute('href', 'tel:' + String(val).replace(/[^+\d]/g, ''));
+        if (key === 'phone' || key === 'mobile') el.setAttribute('href', 'tel:' + String(val).replace(/[^+\d]/g, ''));
       }
     }
     /* expose for other scripts */

@@ -62,6 +62,13 @@ function json(data, status) {
   });
 }
 function err(message, status) { return json({ error: message }, status || 400); }
+function base64ToBytes(b64) {
+  const bin = atob(String(b64 || ''));
+  const len = bin.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
 
 /* ---------------- D1 helpers ---------------- */
 async function first(env, sql, ...args) {
@@ -221,6 +228,73 @@ async function ensureSeed(env) {
         p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], 1, p[9], nowMs(), nowMs());
     }
   }
+  const lpc = await first(env, 'SELECT COUNT(*) c FROM loan_products');
+  if (!lpc || lpc.c === 0) {
+    const loans = [
+      ['Personal Loan', '\ud83d\udcb3', 1000, 50000, '5.9%\u201312.5% APR', 12, 84, 'Unsecured personal lending for any purpose.', 5, 1],
+      ['Mortgage Loan', '\ud83c\udfe0', 50000, 1000000, '3.2%\u20135.8% APR', 60, 360, 'Residential and buy-to-let mortgages.', 5, 2],
+      ['Auto Loan', '\ud83d\ude97', 5000, 80000, '4.5%\u20139.2% APR', 12, 72, 'New and used vehicle financing.', 5, 3],
+      ['Business Loan', '\ud83c\udfe2', 10000, 500000, '6.5%\u201314% APR', 12, 120, 'SME working capital and expansion.', 5, 4],
+      ['Student Loan', '\ud83c\udf93', 2000, 40000, '3.9%\u20137.5% APR', 60, 180, 'Deferred repayment education financing.', 5, 5],
+      ['Debt Consolidation', '\ud83d\udce6', 3000, 75000, '5.5%\u201313% APR', 12, 96, 'Combine debts into one monthly payment.', 5, 6],
+      ['Home Equity Loan', '\ud83c\udfe1', 10000, 300000, '4.8%\u20138.5% APR', 60, 300, 'Secured lending against your property.', 5, 7],
+      ['Bridge Loan', '\ud83c\udf09', 25000, 500000, '8%\u201315% APR', 6, 18, 'Short-term property bridging finance.', 5, 8],
+      ['Equipment Financing', '\ud83d\udd27', 5000, 250000, '5.5%\u201311% APR', 12, 84, 'Machinery and equipment purchase.', 5, 9],
+      ['Credit Line / Revolving', '\ud83d\udcb0', 2000, 60000, '7%\u201316% APR', 6, 60, 'Flexible revolving credit facility.', 5, 10],
+      ['Green Energy Loan', '\ud83c\udf31', 3000, 100000, '3.5%\u20137% APR', 12, 120, 'Solar, heat pump and eco upgrades.', 5, 11],
+      ['Medical Loan', '\u2695\ufe0f', 1000, 50000, '6%\u201312% APR', 12, 72, 'Healthcare and treatment financing.', 5, 12]
+    ];
+    for (const l of loans) {
+      await run(env, `INSERT INTO loan_products (name,icon,min_amount,max_amount,rate,term_min,term_max,description,fee_percent,active,sort_order,created_at,updated_at)
+                      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], 1, l[9], nowMs(), nowMs());
+    }
+  }
+  const dmc = await first(env, 'SELECT COUNT(*) c FROM deposit_methods');
+  if (!dmc || dmc.c === 0) {
+    const methods = [
+      ['Faster Payments (UK Bank Transfer)', '\ud83c\uddec\ud83c\udde7', 'Bank', 'Sort Code / Account Number / IBAN', 'Send a UK Faster Payments transfer to the account details shown. Include your reference.', 100, 1],
+      ['SEPA / International Bank Transfer', '\ud83c\udf0d', 'Bank', 'IBAN / BIC / SWIFT', 'Send an international wire to the IBAN shown. Allow 1\u20133 business days.', 100, 2],
+      ['Debit / Credit Card', '\ud83d\udcb3', 'Card', 'Visa / Mastercard / Amex', 'Pay instantly by card. A 1.5% processing fee may apply.', 100, 3],
+      ['Bitcoin (BTC)', '\u20bf', 'Crypto', 'On-chain BTC address', 'Send BTC to the address shown. Include your reference in the memo if supported.', 50, 4],
+      ['Ethereum (ETH)', '\u039e', 'Crypto', 'ERC-20 address', 'Send ETH to the address shown. Only send ETH or ERC-20 tokens.', 50, 5],
+      ['Tether (USDT \u2014 TRC20)', '\ud83d\udfe2', 'Crypto', 'TRON (TRC20) address', 'Send USDT on the TRON network. Do not send other tokens to this address.', 50, 6],
+      ['Tether (USDT \u2014 ERC20)', '\ud83d\udfe3', 'Crypto', 'Ethereum (ERC20) address', 'Send USDT on the Ethereum network. Do not send other tokens to this address.', 50, 7],
+      ['USDC (ERC20)', '\ud83d\udd35', 'Crypto', 'Ethereum (ERC20) address', 'Send USDC on the Ethereum network.', 50, 8],
+      ['PayPal', '\ud83d\udc9a', 'Wallet', 'PayPal email', 'Send to our PayPal address and include your reference.', 100, 9],
+      ['Wise (TransferWise)', '\ud83d\udfe9', 'Wallet', 'Wise account details', 'Send via Wise for low-cost international transfers.', 100, 10],
+      ['Revolut', '\ud83d\udd0b', 'Wallet', 'Revolut tag / account', 'Send via Revolut and include your reference.', 100, 11],
+      ['Skrill', '\ud83d\udcb8', 'Wallet', 'Skrill email', 'Send to our Skrill address.', 100, 12],
+      ['Neteller', '\ud83d\udcb5', 'Wallet', 'Neteller account', 'Send to our Neteller account.', 100, 13],
+      ['Paysafecard / Voucher', '\ud83c\udfab', 'Voucher', 'Voucher code', 'Purchase a voucher and submit the code.', 50, 14],
+      ['Cash / In-Person Deposit', '\ud83d\udcb5', 'Cash', 'By arrangement', 'Contact support to arrange an in-person deposit.', 100, 15]
+    ];
+    for (const m of methods) {
+      await run(env, `INSERT INTO deposit_methods (name,icon,category,details,instructions,min_amount,active,sort_order,created_at,updated_at)
+                      VALUES (?,?,?,?,?,?,?,?,?,?)`,
+        m[0], m[1], m[2], m[3], m[4], m[5], 1, m[6], nowMs(), nowMs());
+    }
+  }
+  const mtc = await first(env, 'SELECT COUNT(*) c FROM message_templates');
+  if (!mtc || mtc.c === 0) {
+    const tpl = [
+      ['\ud83c\udf81 Welcome & First Steps', 'Welcome to Meridian Capital Partners! We are delighted to have you with us. Your account is ready \u2014 fund it today and start building a portfolio designed around your goals. Our team is here 24/7 whenever you need a hand.', 'motivational', 'Open My Dashboard', 'Welcome', 1],
+      ['\ud83d\udcc8 The Power of Consistency', 'Wealth is not built in a single day \u2014 it is built by showing up consistently. Small, regular investments compound into remarkable results over time. Stay the course, and let time do the heavy lifting for you.', 'motivational', 'View My Portfolio', 'Motivational', 2],
+      ['\ud83c\udf1f Your Goals Are Within Reach', 'Every great achievement began with a single decision to start. You have already taken that step. Keep your eyes on your goals, review your plan regularly, and remember \u2014 progress, however small, is still progress.', 'motivational', 'Review My Plan', 'Motivational', 3],
+      ['\ud83d\ude80 Unlock Your Next Investment', 'Ready to grow further? Explore our range of investment plans built for every ambition \u2014 from steady income to high-growth portfolios. Choose the plan that fits your goals and put your money to work today.', 'promotional', 'Explore Plans', 'Promotional', 4],
+      ['\ud83d\udcb0 Refer a Friend, Earn \u00a350', 'Know someone who could benefit from Meridian Capital Partners? Invite them using your personal referral link and earn a \u00a350 reward for every friend who joins and is approved. There is no limit to how many you can refer.', 'promotional', 'Get My Referral Link', 'Promotional', 5],
+      ['\ud83d\udd10 Keep Your Account Secure', 'Your security is our priority. Never share your password with anyone \u2014 not even someone claiming to be from Meridian Capital. We will never ask for your password or request funds to a personal account. Stay vigilant and report anything suspicious to support.', 'announcement', 'Review Security', 'Security', 6],
+      ['\ud83d\udce3 New Deposit Methods Available', 'Great news \u2014 we have expanded our funding options. You can now deposit via bank transfer, card, crypto and a wide range of digital wallets. Choose whichever method suits you best and fund your account in minutes.', 'announcement', 'Make a Deposit', 'Announcement', 7],
+      ['\ud83c\udfaf A Little Encouragement', 'Whatever your financial goal \u2014 a home, a holiday, a comfortable retirement \u2014 you are one step closer today than you were yesterday. Keep going. Your future self will thank you for the discipline you show now.', 'motivational', 'Open My Dashboard', 'Motivational', 8],
+      ['\u2728 Exclusive Bonus Opportunity', 'As a valued client, we would like to reward your loyalty. Top up your account this month and take advantage of our exclusive bonus opportunity. Terms apply \u2014 contact support for full details.', 'promotional', 'Claim My Bonus', 'Promotional', 9],
+      ['\ud83d\udca1 Smart Investing Tip', 'Diversification is one of the most powerful tools in investing. Spreading your capital across different asset classes can help reduce risk while keeping your growth potential intact. Explore our diversified plans today.', 'motivational', 'See Diversified Plans', 'Motivational', 10]
+    ];
+    for (const t of tpl) {
+      await run(env, `INSERT INTO message_templates (title,body,kind,cta_label,category,active,sort_order,created_at,updated_at)
+                      VALUES (?,?,?,?,?,?,?,?,?)`,
+        t[0], t[1], t[2], t[3], t[4], 1, t[5], nowMs(), nowMs());
+    }
+  }
   const defaults = {
     smtp_host: '', smtp_port: '587', smtp_user: '', smtp_pass: '',
     smtp_from: 'Meridian Capital Partners <no-reply@meridianncapital.com>',
@@ -228,10 +302,15 @@ async function ensureSeed(env) {
     site_url: 'https://meridianncapital.com',
     signup_bonus: String(SIGNUP_BONUS_GBP),
     referral_bonus: String(REFERRAL_BONUS_GBP),
-    contact_phone: '+44 20 7946 0958',
+    contact_name: 'Ewelina Qachar',
+    contact_phone: '0120438957',
+    contact_mobile: '0120438957',
     contact_email: 'hello@meridianncapital.com',
-    contact_address: '1 Canada Square, Canary Wharf, London E14 5AB',
+    contact_address: '356 Lever Edge Lane, Bolton, Greater Manchester, BL3 3BQ',
     contact_hours: 'Mon\u2013Fri, 9:00 AM \u2013 5:30 PM',
+    loan_fee_percent: '5',
+    crypto_first: '1',
+    crypto_first_reason: 'For your first deposit we accept cryptocurrency only. Crypto deposits are settled on-chain, which means they cannot be reversed, charged back or debited without your private key \u2014 protecting you from the card fraud, account hacking and unauthorised debits that affect traditional bank and card payments. Once your first deposit is confirmed, every other funding method (bank transfer, card, wallets and more) unlocks automatically.',
     resend_api_key: ''
   };
   for (const k of Object.keys(defaults)) {
@@ -256,6 +335,8 @@ async function publicUser(env, id) {
     accountNumber: u.account_number, memberId: u.member_id, referralCode: u.referral_code, referredBy: u.referred_by,
     bank: { holder: u.bank_holder, sortCode: u.sort_code, accountNumber: u.account_number, iban: u.iban, bic: u.bic },
     created_at: u.created_at, createdAt: u.created_at,
+    first_deposit_done: u.first_deposit_done ? 1 : 0,
+    firstDepositDone: u.first_deposit_done ? 1 : 0,
     online: !!(u.last_seen && (nowMs() - u.last_seen < ONLINE_WINDOW)), last_seen: u.last_seen,
     unread_notifications: un ? un.c : 0, unread_messages: um ? um.c : 0
   };
@@ -313,14 +394,25 @@ async function route(env, request, method, path, url) {
   if (method === 'GET' && path === '/site') {
     return json({
       contact: {
-        phone: await getSetting(env, 'contact_phone') || '+44 20 7946 0958',
+        name: await getSetting(env, 'contact_name') || 'Ewelina Qachar',
+        phone: await getSetting(env, 'contact_phone') || '0120438957',
+        mobile: await getSetting(env, 'contact_mobile') || '0120438957',
         email: await getSetting(env, 'contact_email') || 'hello@meridianncapital.com',
-        address: await getSetting(env, 'contact_address') || '1 Canada Square, Canary Wharf, London E14 5AB',
+        address: await getSetting(env, 'contact_address') || '356 Lever Edge Lane, Bolton, Greater Manchester, BL3 3BQ',
         hours: await getSetting(env, 'contact_hours') || 'Mon\u2013Fri, 9:00 AM \u2013 5:30 PM'
       },
       signup_bonus: await getSetting(env, 'signup_bonus'),
-      referral_bonus: await getSetting(env, 'referral_bonus')
+      referral_bonus: await getSetting(env, 'referral_bonus'),
+      loan_fee_percent: await getSetting(env, 'loan_fee_percent') || '5',
+      crypto_first: (await getSetting(env, 'crypto_first')) !== '0',
+      crypto_first_reason: await getSetting(env, 'crypto_first_reason') || ''
     });
+  }
+  if (method === 'GET' && path === '/loan-products') {
+    return json({ products: await all(env, 'SELECT * FROM loan_products WHERE active=1 ORDER BY sort_order, id') });
+  }
+  if (method === 'GET' && path === '/deposit-methods') {
+    return json({ methods: await all(env, 'SELECT * FROM deposit_methods WHERE active=1 ORDER BY sort_order, id') });
   }
   if (method === 'GET' && path === '/rules') return json({ rules: RULES });
   if (method === 'GET' && path === '/plans') {
@@ -419,8 +511,22 @@ async function route(env, request, method, path, url) {
         'Open Admin Dashboard', siteUrl + '/admin/dashboard.html'));
     await sendMail(env, email, 'Welcome to Meridian Capital Partners',
       emailTemplate('Welcome, ' + full_name.split(' ')[0] + ' \ud83d\udc4b',
-        '<p>Your Meridian Capital Partners account is active and your ' + cur.code + ' dashboard is ready.</p>' +
-        '<p style="background:rgba(201,162,39,.12);border-left:3px solid #C9A227;padding:14px 16px;border-radius:8px;color:#E7CE6B;">A welcome bonus of <b>' + fmt(bonusAmt, cur.symbol) + '</b> has been credited to your account instantly.</p>' +
+        '<p>Dear ' + full_name + ',</p>' +
+        '<p>Your Meridian Capital Partners account has been created and your ' + cur.code + ' dashboard is ready. Here are your official account details:</p>' +
+        '<div style="background:rgba(201,162,39,.12);border:1px solid rgba(201,162,39,.4);border-radius:12px;padding:20px;margin:18px 0;">' +
+        '<div style="color:#E7CE6B;font-family:Georgia,serif;font-size:15px;font-weight:700;letter-spacing:1px;margin-bottom:12px;">YOUR OFFICIAL ACCOUNT DETAILS</div>' +
+        '<table style="width:100%;border-collapse:collapse;">' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Account Name</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + full_name + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Account Number</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + accountNumber + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Client / Member ID</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + memberId + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Sort Code</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + sortCode + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">IBAN</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + iban + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">BIC / SWIFT</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + bic + '</b></td></tr>' +
+        '</table></div>' +
+        '<div style="background:linear-gradient(135deg,#0E4C92,#0A1F33);border-radius:12px;padding:20px;text-align:center;margin:18px 0;">' +
+        '<div style="color:#E7CE6B;font-family:Georgia,serif;font-size:26px;font-weight:700;">' + fmt(bonusAmt, cur.symbol) + '</div>' +
+        '<div style="color:#fff;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-top:4px;">Sign-up Bonus \u2014 Credited To Your Account</div>' +
+        '</div>' +
         '<p>You can now fund your investment account, view live wallets and reach our support team 24/7 from your dashboard.</p>',
         'Open My Dashboard', siteUrl + '/user/dashboard.html'));
 
@@ -539,6 +645,12 @@ async function route(env, request, method, path, url) {
     const tx_proof = String(b.tx_proof || '').slice(0, 500);
     if (!amt || amt <= 0) return err('Enter a valid amount');
     const u = await first(env, 'SELECT * FROM users WHERE id=?', me.id);
+    /* Crypto-first gate: until the first deposit is approved, only crypto is allowed */
+    const cryptoFirst = (await getSetting(env, 'crypto_first')) !== '0';
+    if (cryptoFirst && !u.first_deposit_done) {
+      const isCrypto = /crypto|bitcoin|btc|ethereum|eth|usdt|usdc|tether|coin|on-chain|onchain/i.test(method_);
+      if (!isCrypto) return err('Your first deposit must be made in cryptocurrency. Once it is confirmed, all other deposit methods unlock automatically.');
+    }
     const ref = genRef('DEP');
     await run(env, `INSERT INTO transactions (user_id,type,status,amount,reference,method,note,created_at)
               VALUES (?,?,?,?,?,?,?,?)`, u.id, 'deposit', 'pending', +amt.toFixed(2), ref, method_, tx_proof, nowMs());
@@ -593,16 +705,25 @@ async function route(env, request, method, path, url) {
     const amount = Number(b.amount);
     const term = parseInt(b.term, 10) || 36;
     const purpose = String(b.purpose || '').slice(0, 300);
-    const rate = String(b.rate || '').slice(0, 40);
+    let rate = String(b.rate || '').slice(0, 40);
     if (!product) return err('Choose a loan product');
-    if (!amount || amount < 1000) return err('Minimum loan amount is \u00a31,000');
+    /* Look up the product to validate limits and derive the fee */
+    const lp = await first(env, 'SELECT * FROM loan_products WHERE name=? AND active=1', product);
+    const feePct = lp ? Number(lp.fee_percent) : Number(await getSetting(env, 'loan_fee_percent') || 5);
+    if (lp) {
+      if (amount < lp.min_amount) return err('Minimum for ' + lp.name + ' is ' + fmt(lp.min_amount, '\u00a3'));
+      if (lp.max_amount && amount > lp.max_amount) return err('Maximum for ' + lp.name + ' is ' + fmt(lp.max_amount, '\u00a3'));
+      if (!rate) rate = lp.rate;
+    } else if (!amount || amount < 1000) {
+      return err('Minimum loan amount is \u00a31,000');
+    }
     const u = await first(env, 'SELECT * FROM users WHERE id=?', me.id);
-    const fee = +(amount * LOAN_FEE_RATE).toFixed(2);
+    const fee = +(amount * (feePct / 100)).toFixed(2);
     const info = await run(env, `INSERT INTO loans (user_id,product,amount,term,purpose,rate,fee,status,created_at)
                            VALUES (?,?,?,?,?,?,?,?,?)`, u.id, product, +amount.toFixed(2), term, purpose, rate, fee, 'pending', nowMs());
-    await notify(env, u.id, 'Loan application received', 'Your ' + fmt(amount, u.currency_symbol) + ' ' + product + ' application is under review. A 5% arrangement fee (' + fmt(fee, u.currency_symbol) + ') applies.', '\ud83c\udfe6', { email: u.email });
+    await notify(env, u.id, 'Loan application received', 'Your ' + fmt(amount, u.currency_symbol) + ' ' + product + ' application is under review. A ' + feePct + '% assessment fee (' + fmt(fee, u.currency_symbol) + ') applies after approval.', '\ud83c\udfe6', { email: u.email });
     await adminAlert(env, 'loan', u.id, 'New loan application: ' + fmt(amount, u.currency_symbol) + ' \u2014 ' + product + ' from ' + u.full_name);
-    return json({ message: 'Loan application submitted. Our team will review it within 24\u201348 hours.', id: info.last_row_id, fee });
+    return json({ message: 'Loan application submitted. Our team will review it within 24\u201348 hours.', id: info.last_row_id, fee, fee_percent: feePct });
   }
 
   /* ---------- Investment plans (user) ---------- */
@@ -660,7 +781,7 @@ async function route(env, request, method, path, url) {
 
   if (method === 'GET' && path === '/messages') {
     if (!me) return err('Not authenticated', 401);
-    const rows = await all(env, 'SELECT * FROM messages WHERE user_id=? ORDER BY created_at ASC', me.id);
+    const rows = await all(env, "SELECT id,user_id,sender,body,attachment_name,attachment_type,read,created_at, CASE WHEN attachment IS NOT NULL AND attachment<>'' THEN 1 ELSE 0 END has_attachment FROM messages WHERE user_id=? ORDER BY created_at ASC", me.id);
     await run(env, "UPDATE messages SET read=1 WHERE user_id=? AND sender='support'", me.id);
     return json({ messages: rows });
   }
@@ -669,21 +790,50 @@ async function route(env, request, method, path, url) {
     const b = await readBody(request);
     const body = String(b.body || '').trim();
     if (me.role === 'admin') return err('Use the admin reply endpoint');
-    if (!body) return err('Message cannot be empty');
+    /* Optional image attachment (base64 data URL or raw base64) */
+    let attachment = null, attachment_name = null, attachment_type = null;
+    if (b.attachment) {
+      const raw = String(b.attachment);
+      const m = raw.match(/^data:([^;]+);base64,(.*)$/);
+      attachment_type = m ? m[1] : (String(b.attachment_type || 'image/png'));
+      attachment = m ? m[2] : raw;
+      attachment_name = String(b.attachment_name || 'attachment').slice(0, 120);
+      /* Guard: keep attachments under ~4MB of base64 (~3MB binary) */
+      if (attachment.length > 5.5 * 1024 * 1024) return err('Image is too large. Please use an image under 3MB.');
+      if (!/^image\//.test(attachment_type)) return err('Only image attachments are supported');
+    }
+    if (!body && !attachment) return err('Message cannot be empty');
     const u = await first(env, 'SELECT * FROM users WHERE id=?', me.id);
-    const info = await run(env, 'INSERT INTO messages (user_id,sender,body,created_at) VALUES (?,?,?,?)', u.id, 'user', body.slice(0, 2000), nowMs());
-    const msg = await first(env, 'SELECT * FROM messages WHERE id=?', info.last_row_id);
-    await adminAlert(env, 'support_message', u.id, '\ud83d\udcac ' + u.full_name + ': ' + body.slice(0, 120));
+    const info = await run(env, 'INSERT INTO messages (user_id,sender,body,attachment,attachment_name,attachment_type,created_at) VALUES (?,?,?,?,?,?,?)',
+      u.id, 'user', body.slice(0, 2000), attachment, attachment_name, attachment_type, nowMs());
+    const msg = await first(env, 'SELECT id,user_id,sender,body,attachment_name,attachment_type,read,created_at FROM messages WHERE id=?', info.last_row_id);
+    await adminAlert(env, 'support_message', u.id, '\ud83d\udcac ' + u.full_name + ': ' + (body ? body.slice(0, 120) : '[image attachment]'));
     /* Notify admin by email as well */
     const adminEmail = (await getSetting(env, 'admin_notify_email')) || env.ADMIN_EMAIL || 'admin@meridianncapital.com';
     const siteUrl = await getSetting(env, 'site_url');
     await sendMail(env, adminEmail, 'New support message from ' + u.full_name,
       emailTemplate('New Support Message \ud83d\udcac',
         '<p><b>' + u.full_name + '</b> (' + u.email + ') sent a message to customer support:</p>' +
-        '<p style="background:rgba(201,162,39,.12);border-left:3px solid #C9A227;padding:14px 16px;border-radius:8px;color:#E7CE6B;">' + body.slice(0, 500).replace(/</g, '&lt;') + '</p>' +
+        (body ? '<p style="background:rgba(201,162,39,.12);border-left:3px solid #C9A227;padding:14px 16px;border-radius:8px;color:#E7CE6B;">' + body.slice(0, 500).replace(/</g, '&lt;') + '</p>' : '') +
+        (attachment ? '<p>\ud83d\udcf7 <b>Image attached</b> \u2014 view and download it from the admin dashboard \u2192 Messages tab.</p>' : '') +
         '<p>Reply from the admin dashboard \u2192 Messages tab.</p>',
         'Open Admin Dashboard', siteUrl + '/admin/dashboard.html'));
     return json({ message: msg });
+  }
+  /* Fetch a single message attachment (owner or admin) */
+  if (method === 'GET' && seg[0] === 'messages' && seg[2] === 'attachment') {
+    if (!me) return err('Not authenticated', 401);
+    const m = await first(env, 'SELECT * FROM messages WHERE id=?', seg[1]);
+    if (!m || !m.attachment) return err('Attachment not found', 404);
+    if (me.role !== 'admin' && m.user_id !== me.id) return err('Not authorised', 403);
+    const bin = base64ToBytes(m.attachment);
+    return new Response(bin, {
+      headers: {
+        'Content-Type': m.attachment_type || 'image/png',
+        'Content-Disposition': 'inline; filename="' + (m.attachment_name || 'attachment') + '"',
+        'Cache-Control': 'private, max-age=3600'
+      }
+    });
   }
 
   if (method === 'GET' && path === '/notifications') {
@@ -778,6 +928,61 @@ async function adminRoute(env, request, method, seg, url, adminId) {
     return json({ message: 'KYC updated', kyc });
   }
 
+  /* Approve a client account and send the official approval email */
+  if (method === 'POST' && sub === 'users' && seg[3] === 'approve') {
+    const target = await first(env, "SELECT * FROM users WHERE id=? AND role='user'", seg[2]);
+    if (!target) return err('User not found', 404);
+    const b = await readBody(request);
+    const bonusGBP = Number(b.bonus !== undefined ? b.bonus : (await getSetting(env, 'signup_bonus') || SIGNUP_BONUS_GBP));
+    const cur = currencyFor(target.country);
+    const bonusAmt = +(bonusGBP * cur.rate).toFixed(2);
+    /* Ensure the user has account identifiers */
+    let accountNumber = target.account_number, memberId = target.member_id, sortCode = target.sort_code, iban = target.iban, bic = target.bic;
+    if (!accountNumber) accountNumber = genAccountNumber();
+    if (!memberId) memberId = genMemberId();
+    if (!sortCode) sortCode = genSortCode();
+    if (!iban) iban = genIBAN(sortCode, genBankAccount());
+    if (!bic) bic = 'MCUKGB2L';
+    await run(env, 'UPDATE users SET status=?, kyc=?, account_number=?, member_id=?, sort_code=?, iban=?, bic=?, bank_holder=? WHERE id=?',
+      'active', 'verified', accountNumber, memberId, sortCode, iban, bic, target.full_name, target.id);
+    /* Credit the sign-up bonus if not already received */
+    let balanceAfter = target.balance;
+    if (!target.bonus_received) {
+      balanceAfter = await adjustBalance(env, target.id, bonusAmt);
+      await run(env, 'UPDATE users SET bonus_received=1 WHERE id=?', target.id);
+      await run(env, `INSERT INTO transactions (user_id,type,status,amount,reference,method,note,balance_after,created_at,processed_at,processed_by)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+        target.id, 'bonus', 'approved', bonusAmt, genRef('BON'), 'system', 'Sign-up bonus credited on account approval', balanceAfter, nowMs(), nowMs(), adminId);
+    }
+    const siteUrl = await getSetting(env, 'site_url');
+    const firstName = String(target.full_name || '').split(' ')[0];
+    await notify(env, target.id, 'Your account has been approved \ud83c\udf89',
+      'Great news! Your Meridian Capital Partners account has been approved and is now fully active. Your account number is ' + accountNumber + ' and your Client/Member ID is ' + memberId + '.',
+      '\u2705', { email: target.email });
+    await sendMail(env, target.email, 'Your Meridian Capital Partners account has been approved',
+      emailTemplate('Your Account Has Been Approved \ud83c\udf89',
+        '<p>Dear ' + target.full_name + ',</p>' +
+        '<p>Great news! Your Meridian Capital Partners account has been approved and is now fully active. You can now fund your account, invest in our plans and withdraw your returns at any time.</p>' +
+        '<div style="background:rgba(201,162,39,.12);border:1px solid rgba(201,162,39,.4);border-radius:12px;padding:20px;margin:18px 0;">' +
+        '<div style="color:#E7CE6B;font-family:Georgia,serif;font-size:15px;font-weight:700;letter-spacing:1px;margin-bottom:12px;">YOUR OFFICIAL ACCOUNT DETAILS</div>' +
+        '<table style="width:100%;border-collapse:collapse;">' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Account Name</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + target.full_name + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Account Number</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + accountNumber + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Client / Member ID</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + memberId + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Sort Code</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + sortCode + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">IBAN</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + iban + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">BIC / SWIFT</td><td style="padding:6px 0;color:#fff;text-align:right;"><b>' + bic + '</b></td></tr>' +
+        '</table></div>' +
+        '<div style="background:linear-gradient(135deg,#0E4C92,#0A1F33);border-radius:12px;padding:20px;text-align:center;margin:18px 0;">' +
+        '<div style="color:#E7CE6B;font-family:Georgia,serif;font-size:26px;font-weight:700;">' + fmt(bonusAmt, cur.symbol) + '</div>' +
+        '<div style="color:#fff;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-top:4px;">Sign-up Bonus \u2014 Credited To Your Account</div>' +
+        '</div>' +
+        '<p>Welcome aboard, ' + firstName + '. We are delighted to have you with us.</p>',
+        'Access My Dashboard', siteUrl + '/user/dashboard.html'));
+    await adminAlert(env, 'approve', target.id, 'Account approved for ' + target.full_name + ' (' + target.email + ')');
+    return json({ message: 'Account approved and email sent', account_number: accountNumber, member_id: memberId, bonus: bonusAmt });
+  }
+
   if (method === 'GET' && sub === 'transactions') {
     let sql = "SELECT t.*, u.full_name, u.email, u.currency_symbol, u.currency_code FROM transactions t JOIN users u ON u.id = t.user_id WHERE u.role='user'";
     const params = [];
@@ -798,6 +1003,14 @@ async function adminRoute(env, request, method, seg, url, adminId) {
     else if (t.type === 'withdrawal') { const u = await first(env, 'SELECT balance FROM users WHERE id=?', t.user_id); balanceAfter = u.balance; }
     else return err('Only deposit/withdrawal requests can be approved here');
     await run(env, 'UPDATE transactions SET status=?, processed_at=?, processed_by=?, balance_after=? WHERE id=?', 'approved', nowMs(), adminId, balanceAfter, t.id);
+    /* First approved deposit unlocks all other funding methods */
+    if (t.type === 'deposit') {
+      const du = await first(env, 'SELECT first_deposit_done FROM users WHERE id=?', t.user_id);
+      if (du && !du.first_deposit_done) {
+        await run(env, 'UPDATE users SET first_deposit_done=1 WHERE id=?', t.user_id);
+        await notify(env, t.user_id, 'All deposit methods unlocked \ud83d\udd13', 'Your first deposit is confirmed. Bank transfer, card, wallets and every other funding method are now available on your Deposit page.', '\ud83d\udd13', { email: t.email });
+      }
+    }
     const title = (t.type === 'deposit') ? 'Deposit approved \u2705' : 'Withdrawal approved \u2705';
     await notify(env, t.user_id, title, 'Your ' + t.type + ' of ' + fmt(t.amount, t.currency_symbol) + ' (ref ' + t.reference + ') has been approved by our team.', t.type === 'deposit' ? '\ud83d\udce5' : '\ud83d\udce4', { email: t.email });
     const siteUrl = await getSetting(env, 'site_url');
@@ -1005,9 +1218,33 @@ async function adminRoute(env, request, method, seg, url, adminId) {
     const l = await first(env, 'SELECT l.*, u.email, u.currency_symbol FROM loans l JOIN users u ON u.id=l.user_id WHERE l.id=?', seg[2]);
     if (!l) return err('Loan not found', 404);
     if (l.status !== 'pending') return err('Loan already ' + l.status);
-    await run(env, 'UPDATE loans SET status=?, processed_at=?, processed_by=? WHERE id=?', 'approved', nowMs(), adminId, l.id);
-    await notify(env, l.user_id, 'Loan approved \u2705', 'Your ' + fmt(l.amount, l.currency_symbol) + ' ' + l.product + ' loan has been approved. Funds will be disbursed shortly.', '\ud83c\udfe6', { email: l.email });
-    return json({ message: 'Loan approved' });
+    /* 5% assessment fee is applied AFTER approval and deducted from the disbursed amount */
+    const feePct = Number(await getSetting(env, 'loan_fee_percent') || 5);
+    const fee = +(l.amount * (feePct / 100)).toFixed(2);
+    const net = +(l.amount - fee).toFixed(2);
+    const balanceAfter = await adjustBalance(env, l.user_id, net);
+    await run(env, 'UPDATE loans SET status=?, fee=?, processed_at=?, processed_by=? WHERE id=?', 'approved', fee, nowMs(), adminId, l.id);
+    const ref = genRef('LON');
+    await run(env, `INSERT INTO transactions (user_id,type,status,amount,reference,method,note,balance_after,created_at,processed_at,processed_by)
+              VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+      l.user_id, 'loan', 'approved', net, ref, 'loan', l.product + ' loan disbursed (net of ' + feePct + '% assessment fee ' + fmt(fee, l.currency_symbol) + ')', balanceAfter, nowMs(), nowMs(), adminId);
+    await notify(env, l.user_id, 'Loan approved \u2705',
+      'Your ' + fmt(l.amount, l.currency_symbol) + ' ' + l.product + ' loan has been approved. A ' + feePct + '% assessment fee of ' + fmt(fee, l.currency_symbol) + ' was applied, and ' + fmt(net, l.currency_symbol) + ' has been credited to your account.',
+      '\ud83c\udfe6', { email: l.email });
+    const siteUrl = await getSetting(env, 'site_url');
+    await sendMail(env, l.email, 'Loan approved \u2014 ' + l.product,
+      emailTemplate('Loan Approved \u2705',
+        '<p>Great news \u2014 your <b>' + l.product + '</b> loan of <b>' + fmt(l.amount, l.currency_symbol) + '</b> has been approved.</p>' +
+        '<table style="width:100%;border-collapse:collapse;margin:12px 0;">' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Loan amount</td><td style="padding:6px 0;color:#fff;"><b>' + fmt(l.amount, l.currency_symbol) + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Assessment fee (' + feePct + '%)</td><td style="padding:6px 0;color:#E7CE6B;"><b>\u2212 ' + fmt(fee, l.currency_symbol) + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Net disbursed</td><td style="padding:6px 0;color:#fff;"><b>' + fmt(net, l.currency_symbol) + '</b></td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Term</td><td style="padding:6px 0;color:#fff;">' + l.term + ' months</td></tr>' +
+        '<tr><td style="padding:6px 0;color:#9db0c4;">Reference</td><td style="padding:6px 0;color:#fff;">' + ref + '</td></tr>' +
+        '</table>' +
+        '<p>New balance: <b style="color:#E7CE6B;">' + fmt(balanceAfter, l.currency_symbol) + '</b></p>',
+        'Open My Dashboard', siteUrl + '/user/dashboard.html'));
+    return json({ message: 'Loan approved', fee, net, balance_after: balanceAfter });
   }
   if (method === 'POST' && sub === 'loans' && seg[3] === 'decline') {
     const b = await readBody(request);
@@ -1052,6 +1289,121 @@ async function adminRoute(env, request, method, seg, url, adminId) {
     return json({ message: 'Wallet deleted' });
   }
 
+  /* ---------- Loan products (admin) ---------- */
+  if (method === 'GET' && sub === 'loan-products') {
+    return json({ products: await all(env, 'SELECT * FROM loan_products ORDER BY sort_order, id') });
+  }
+  if (method === 'POST' && sub === 'loan-products' && seg.length === 2) {
+    const b = await readBody(request);
+    const name = String(b.name || '').trim();
+    if (!name) return err('Loan product name is required');
+    const info = await run(env, `INSERT INTO loan_products (name,icon,min_amount,max_amount,rate,term_min,term_max,description,fee_percent,active,sort_order,created_at,updated_at)
+                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      name, String(b.icon || '\ud83c\udfe6'), Number(b.min_amount) || 1000, Number(b.max_amount) || 50000,
+      String(b.rate || ''), parseInt(b.term_min, 10) || 12, parseInt(b.term_max, 10) || 84,
+      String(b.description || ''), Number(b.fee_percent) || 5, b.active === false ? 0 : 1, parseInt(b.sort_order, 10) || 0, nowMs(), nowMs());
+    return json({ message: 'Loan product created', id: info.last_row_id });
+  }
+  if (method === 'PUT' && sub === 'loan-products' && seg.length === 3) {
+    const p = await first(env, 'SELECT * FROM loan_products WHERE id=?', seg[2]);
+    if (!p) return err('Loan product not found', 404);
+    const b = await readBody(request);
+    await run(env, `UPDATE loan_products SET name=?,icon=?,min_amount=?,max_amount=?,rate=?,term_min=?,term_max=?,description=?,fee_percent=?,active=?,sort_order=?,updated_at=? WHERE id=?`,
+      b.name !== undefined ? String(b.name) : p.name,
+      b.icon !== undefined ? String(b.icon) : p.icon,
+      b.min_amount !== undefined ? Number(b.min_amount) : p.min_amount,
+      b.max_amount !== undefined ? Number(b.max_amount) : p.max_amount,
+      b.rate !== undefined ? String(b.rate) : p.rate,
+      b.term_min !== undefined ? parseInt(b.term_min, 10) : p.term_min,
+      b.term_max !== undefined ? parseInt(b.term_max, 10) : p.term_max,
+      b.description !== undefined ? String(b.description) : p.description,
+      b.fee_percent !== undefined ? Number(b.fee_percent) : p.fee_percent,
+      b.active !== undefined ? (b.active ? 1 : 0) : p.active,
+      b.sort_order !== undefined ? parseInt(b.sort_order, 10) : p.sort_order,
+      nowMs(), p.id);
+    return json({ message: 'Loan product updated' });
+  }
+  if (method === 'DELETE' && sub === 'loan-products' && seg.length === 3) {
+    const p = await first(env, 'SELECT * FROM loan_products WHERE id=?', seg[2]);
+    if (!p) return err('Loan product not found', 404);
+    await run(env, 'DELETE FROM loan_products WHERE id=?', p.id);
+    return json({ message: 'Loan product deleted' });
+  }
+
+  /* ---------- Deposit methods (admin) ---------- */
+  if (method === 'GET' && sub === 'deposit-methods') {
+    return json({ methods: await all(env, 'SELECT * FROM deposit_methods ORDER BY sort_order, id') });
+  }
+  if (method === 'POST' && sub === 'deposit-methods' && seg.length === 2) {
+    const b = await readBody(request);
+    const name = String(b.name || '').trim();
+    if (!name) return err('Deposit method name is required');
+    const info = await run(env, `INSERT INTO deposit_methods (name,icon,category,details,instructions,min_amount,active,sort_order,created_at,updated_at)
+                           VALUES (?,?,?,?,?,?,?,?,?,?)`,
+      name, String(b.icon || '\ud83d\udcb3'), String(b.category || 'Bank'), String(b.details || ''),
+      String(b.instructions || ''), Number(b.min_amount) || 100, b.active === false ? 0 : 1, parseInt(b.sort_order, 10) || 0, nowMs(), nowMs());
+    return json({ message: 'Deposit method created', id: info.last_row_id });
+  }
+  if (method === 'PUT' && sub === 'deposit-methods' && seg.length === 3) {
+    const m = await first(env, 'SELECT * FROM deposit_methods WHERE id=?', seg[2]);
+    if (!m) return err('Deposit method not found', 404);
+    const b = await readBody(request);
+    await run(env, `UPDATE deposit_methods SET name=?,icon=?,category=?,details=?,instructions=?,min_amount=?,active=?,sort_order=?,updated_at=? WHERE id=?`,
+      b.name !== undefined ? String(b.name) : m.name,
+      b.icon !== undefined ? String(b.icon) : m.icon,
+      b.category !== undefined ? String(b.category) : m.category,
+      b.details !== undefined ? String(b.details) : m.details,
+      b.instructions !== undefined ? String(b.instructions) : m.instructions,
+      b.min_amount !== undefined ? Number(b.min_amount) : m.min_amount,
+      b.active !== undefined ? (b.active ? 1 : 0) : m.active,
+      b.sort_order !== undefined ? parseInt(b.sort_order, 10) : m.sort_order,
+      nowMs(), m.id);
+    return json({ message: 'Deposit method updated' });
+  }
+  if (method === 'DELETE' && sub === 'deposit-methods' && seg.length === 3) {
+    const m = await first(env, 'SELECT * FROM deposit_methods WHERE id=?', seg[2]);
+    if (!m) return err('Deposit method not found', 404);
+    await run(env, 'DELETE FROM deposit_methods WHERE id=?', m.id);
+    return json({ message: 'Deposit method deleted' });
+  }
+
+  /* ---------- Message templates (admin) ---------- */
+  if (method === 'GET' && sub === 'templates') {
+    return json({ templates: await all(env, 'SELECT * FROM message_templates ORDER BY sort_order, id') });
+  }
+  if (method === 'POST' && sub === 'templates' && seg.length === 2) {
+    const b = await readBody(request);
+    const title = String(b.title || '').trim();
+    const body = String(b.body || '').trim();
+    if (!title || !body) return err('Title and message are required');
+    const info = await run(env, `INSERT INTO message_templates (title,body,kind,cta_label,category,active,sort_order,created_at,updated_at)
+                    VALUES (?,?,?,?,?,?,?,?,?)`,
+      title, body, String(b.kind || 'motivational'), String(b.cta_label || 'Open My Dashboard'),
+      String(b.category || 'General'), b.active === false ? 0 : 1, parseInt(b.sort_order, 10) || 0, nowMs(), nowMs());
+    return json({ message: 'Template created', id: info.last_row_id });
+  }
+  if (method === 'PUT' && sub === 'templates' && seg.length === 3) {
+    const t = await first(env, 'SELECT * FROM message_templates WHERE id=?', seg[2]);
+    if (!t) return err('Template not found', 404);
+    const b = await readBody(request);
+    await run(env, `UPDATE message_templates SET title=?,body=?,kind=?,cta_label=?,category=?,active=?,sort_order=?,updated_at=? WHERE id=?`,
+      b.title !== undefined ? String(b.title) : t.title,
+      b.body !== undefined ? String(b.body) : t.body,
+      b.kind !== undefined ? String(b.kind) : t.kind,
+      b.cta_label !== undefined ? String(b.cta_label) : t.cta_label,
+      b.category !== undefined ? String(b.category) : t.category,
+      b.active !== undefined ? (b.active ? 1 : 0) : t.active,
+      b.sort_order !== undefined ? parseInt(b.sort_order, 10) : t.sort_order,
+      nowMs(), t.id);
+    return json({ message: 'Template updated' });
+  }
+  if (method === 'DELETE' && sub === 'templates' && seg.length === 3) {
+    const t = await first(env, 'SELECT * FROM message_templates WHERE id=?', seg[2]);
+    if (!t) return err('Template not found', 404);
+    await run(env, 'DELETE FROM message_templates WHERE id=?', t.id);
+    return json({ message: 'Template deleted' });
+  }
+
   if (method === 'GET' && sub === 'chats' && seg.length === 2) {
     const rows = await all(env, `
       SELECT u.id user_id, u.full_name, u.email, u.country, u.currency_symbol, u.currency_code, u.last_seen, u.status,
@@ -1070,9 +1422,23 @@ async function adminRoute(env, request, method, seg, url, adminId) {
   if (method === 'GET' && sub === 'chats' && seg.length === 3) {
     const u = await first(env, "SELECT * FROM users WHERE id=? AND role='user'", seg[2]);
     if (!u) return err('User not found', 404);
-    const msgs = await all(env, 'SELECT * FROM messages WHERE user_id=? ORDER BY created_at ASC', u.id);
+    /* Exclude the heavy base64 blob; expose a has_attachment flag instead */
+    const msgs = await all(env, "SELECT id,user_id,sender,body,attachment_name,attachment_type,read,created_at, CASE WHEN attachment IS NOT NULL AND attachment<>'' THEN 1 ELSE 0 END has_attachment FROM messages WHERE user_id=? ORDER BY created_at ASC", u.id);
     await run(env, "UPDATE messages SET read=1 WHERE user_id=? AND sender='user'", u.id);
     return json({ user: await publicUser(env, u.id), messages: msgs });
+  }
+  /* Admin attachment download (forces download) */
+  if (method === 'GET' && sub === 'chats' && seg[3] === 'attachment') {
+    const m = await first(env, 'SELECT * FROM messages WHERE id=?', seg[2]);
+    if (!m || !m.attachment) return err('Attachment not found', 404);
+    const bin = base64ToBytes(m.attachment);
+    return new Response(bin, {
+      headers: {
+        'Content-Type': m.attachment_type || 'image/png',
+        'Content-Disposition': 'attachment; filename="' + (m.attachment_name || 'attachment') + '"',
+        'Cache-Control': 'private, max-age=3600'
+      }
+    });
   }
   if (method === 'POST' && sub === 'chats' && seg[3] === 'reply') {
     const b = await readBody(request);
@@ -1090,15 +1456,24 @@ async function adminRoute(env, request, method, seg, url, adminId) {
     const b = await readBody(request);
     const subject = String(b.subject || '').trim();
     const body = String(b.body || '').trim();
+    const kind = String(b.kind || 'promotional').trim();
+    const ctaLabel = String(b.cta_label || 'Open My Dashboard').trim();
     if (!subject || !body) return err('Subject and message are required');
     const info = await run(env, 'INSERT INTO broadcasts (subject,body,created_at) VALUES (?,?,?)', subject, body, nowMs());
     const users = await all(env, "SELECT * FROM users WHERE role='user' AND status='active'");
     const siteUrl = await getSetting(env, 'site_url');
+    const icon = kind === 'motivational' ? '\ud83c\udf1f' : (kind === 'promotional' ? '\ud83c\udf81' : '\ud83d\udce2');
+    const heading = kind === 'motivational' ? 'A Message From Meridian Capital Partners' : subject;
     for (const u of users) {
-      await notify(env, u.id, subject, body, '\ud83d\udce2', { email: u.email });
-      await sendMail(env, u.email, subject, emailTemplate(subject, '<p>' + body.replace(/\n/g, '<br/>') + '</p>', 'Open My Dashboard', siteUrl + '/user/dashboard.html'));
+      const firstName = String(u.full_name || '').split(' ')[0];
+      await notify(env, u.id, subject, body, icon, { email: u.email });
+      await sendMail(env, u.email, subject,
+        emailTemplate(heading,
+          '<p>Dear ' + firstName + ',</p>' +
+          '<div style="background:rgba(201,162,39,.10);border-left:3px solid #C9A227;padding:16px 18px;border-radius:8px;color:#e8eef5;">' + body.replace(/\n/g, '<br/>') + '</div>',
+          ctaLabel, siteUrl + '/user/dashboard.html'));
     }
-    await adminAlert(env, 'broadcast', null, 'Broadcast sent to ' + users.length + ' users: "' + subject + '"');
+    await adminAlert(env, 'broadcast', null, 'Broadcast (' + kind + ') sent to ' + users.length + ' users: "' + subject + '"');
     return json({ message: 'Broadcast sent to ' + users.length + ' users', id: info.last_row_id, sent_to: users.length });
   }
   if (method === 'GET' && sub === 'broadcasts') {
@@ -1121,23 +1496,28 @@ async function adminRoute(env, request, method, seg, url, adminId) {
       smtp_from: await getSetting(env, 'smtp_from'), admin_notify_email: await getSetting(env, 'admin_notify_email'),
       site_url: await getSetting(env, 'site_url'), signup_bonus: await getSetting(env, 'signup_bonus'),
       referral_bonus: await getSetting(env, 'referral_bonus'),
-      contact_phone: await getSetting(env, 'contact_phone'), contact_email: await getSetting(env, 'contact_email'),
+      contact_name: await getSetting(env, 'contact_name'),
+      contact_phone: await getSetting(env, 'contact_phone'), contact_mobile: await getSetting(env, 'contact_mobile'),
+      contact_email: await getSetting(env, 'contact_email'),
       contact_address: await getSetting(env, 'contact_address'), contact_hours: await getSetting(env, 'contact_hours'),
+      loan_fee_percent: await getSetting(env, 'loan_fee_percent'),
+      crypto_first: await getSetting(env, 'crypto_first'),
+      crypto_first_reason: await getSetting(env, 'crypto_first_reason'),
       resend_api_key: await getSetting(env, 'resend_api_key')
     } });
   }
-  if (method === 'POST' && sub === 'settings') {
-    const allowed = ['smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_from', 'admin_notify_email', 'site_url', 'signup_bonus', 'referral_bonus',
-      'contact_phone', 'contact_email', 'contact_address', 'contact_hours', 'resend_api_key'];
-    const b = await readBody(request);
-    for (const k of allowed) { if (b[k] !== undefined) await setSetting(env, k, b[k]); }
-    return json({ message: 'Settings saved' });
-  }
-  if (method === 'POST' && sub === 'settings' && seg[3] === 'test-email') {
+  if (method === 'POST' && sub === 'settings' && seg[2] === 'test-email') {
     const to = await getSetting(env, 'admin_notify_email') || 'admin@meridianncapital.com';
     const r = await sendMail(env, to, 'Email test \u2014 Meridian Capital Partners',
       emailTemplate('Email Test', '<p>This is a test message from your Meridian Capital Partners admin dashboard. If you can read this, your email relay is working.</p>', null, null));
     return json({ message: r.sent ? 'Test email sent \u2014 check your inbox' : 'Saved to outbox (relay not configured or failed): ' + (r.reason || ''), sent: r.sent });
+  }
+  if (method === 'POST' && sub === 'settings') {
+    const allowed = ['smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_from', 'admin_notify_email', 'site_url', 'signup_bonus', 'referral_bonus',
+      'contact_name', 'contact_phone', 'contact_mobile', 'contact_email', 'contact_address', 'contact_hours', 'loan_fee_percent', 'crypto_first', 'crypto_first_reason', 'resend_api_key'];
+    const b = await readBody(request);
+    for (const k of allowed) { if (b[k] !== undefined) await setSetting(env, k, b[k]); }
+    return json({ message: 'Settings saved' });
   }
 
   if (method === 'POST' && sub === 'rules' && seg[2] === 'send') {

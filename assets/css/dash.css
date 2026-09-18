@@ -1,0 +1,143 @@
+/* ============================================================
+   Dashboard polish — shared by admin & user dashboards
+   ============================================================ */
+
+/* --- richer page background --- */
+.dash-wrap {
+  background:
+    radial-gradient(900px 420px at 100% 0%, rgba(14,76,146,.06), transparent 60%),
+    radial-gradient(700px 380px at 0% 100%, rgba(201,162,39,.07), transparent 60%),
+    var(--brand-light);
+}
+
+/* --- header band --- */
+.dash-head {
+  background: linear-gradient(135deg, #0A1F33 0%, #0E4C92 100%);
+  border-radius: 18px;
+  padding: 26px 28px;
+  color: #fff;
+  box-shadow: 0 18px 40px rgba(10,31,51,.22);
+  position: relative;
+  overflow: hidden;
+}
+.dash-head::after {
+  content: "";
+  position: absolute;
+  top: -60px; right: -40px;
+  width: 260px; height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,162,39,.28), transparent 65%);
+}
+.dash-head h1 { color: #fff !important; }
+.dash-head .sub { color: #c7d6e6 !important; }
+.dash-head .dash-card {
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: none;
+}
+.dash-head .dash-card .lbl { color: #c7d6e6; }
+.dash-head .dash-card .val { color: #fff; }
+.dash-head .dash-card .val.gold { color: var(--brand-accent-soft); }
+
+/* --- stat cards --- */
+.dash-grid .dash-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.dash-grid .dash-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--brand-accent), var(--brand-primary));
+}
+.dash-grid .dash-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 34px rgba(10,31,51,.12);
+}
+
+/* --- tabs: sticky, pill style --- */
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #fff;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1px solid #eef3f8;
+}
+.tabs button {
+  border-radius: 999px;
+  border-bottom: none !important;
+  padding: 9px 15px;
+  transition: background .15s ease, color .15s ease;
+}
+.tabs button:hover { background: #f1f6fc; color: var(--brand-primary); }
+.tabs button.active {
+  background: linear-gradient(135deg, #0E4C92, #0A1F33);
+  color: #fff !important;
+  box-shadow: 0 6px 16px rgba(14,76,146,.28);
+}
+
+/* --- panels --- */
+.panel { border-radius: 18px; }
+.panel-body { padding: 26px; }
+
+/* --- tables --- */
+table.data { border-radius: 12px; overflow: hidden; }
+table.data th { background: linear-gradient(180deg, #f5f8fc, #eef3f8); }
+table.data td { vertical-align: middle; }
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* --- buttons --- */
+.btn-xs { padding: 5px 10px; font-size: .74rem; border-radius: 8px; }
+.btn-sm { padding: 8px 14px; font-size: .82rem; }
+
+/* --- forms --- */
+.form-group label { font-weight: 600; color: var(--brand-dark); font-size: .84rem; margin-bottom: 6px; display: block; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid #d7e0ea;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: .92rem;
+  background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(14,76,146,.12);
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+
+/* --- alerts --- */
+.alert { display: none; padding: 12px 15px; border-radius: 10px; font-size: .88rem; }
+.alert.show { display: block; }
+.alert.success { background: #e8f6ee; color: #1d6b3f; border: 1px solid #bfe6cf; }
+.alert.error { background: #fdecec; color: #a12622; border: 1px solid #f3c9c9; }
+
+/* --- chat cards --- */
+.chat-card { transition: box-shadow .18s ease; }
+.chat-card.open { box-shadow: 0 14px 34px rgba(10,31,51,.12); }
+
+/* --- copy field --- */
+.copy-field { display: inline-flex; align-items: center; gap: 8px; }
+.copy-field code {
+  background: #f1f6fc;
+  border: 1px solid #e0e9f3;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: .82rem;
+  word-break: break-all;
+}
+
+/* --- mini text --- */
+.mini { font-size: .78rem; color: var(--ink-soft); }
+.muted { color: var(--ink-soft); }
+.empty { text-align: center; color: var(--ink-soft); padding: 26px; font-size: .9rem; }

@@ -8,6 +8,7 @@
   <meta name="description" content="Meridian Capital Partners administrator console — manage clients, transactions, loans and messages." />
   <meta name="robots" content="noindex, nofollow" />
   <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/dash.css" />
   <style>
     .admin-bar { background: linear-gradient(135deg, var(--brand-dark), #06121f); color: #fff; padding: 22px 0; }
     .admin-bar .container { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
@@ -83,8 +84,11 @@
           <button data-tab="generate">⚡ Generate</button>
           <button data-tab="wallets">🪙 Wallets</button>
           <button data-tab="plans">📈 Plans</button>
+          <button data-tab="loanproducts">🏛️ Loan Products</button>
           <button data-tab="loans">🏦 Loans</button>
+          <button data-tab="depositmethods">💳 Deposit Methods</button>
           <button data-tab="messages">💬 Messages</button>
+          <button data-tab="templates">📝 Message Templates</button>
           <button data-tab="outbox">📧 Outbox</button>
           <button data-tab="settings">⚙️ Settings</button>
         </div>
@@ -322,10 +326,87 @@
             </div>
             <div style="overflow-x:auto;">
               <table class="data" id="loansTable">
-                <thead><tr><th>Date</th><th>Client</th><th>Product</th><th>Amount</th><th>Term</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Date</th><th>Client</th><th>Product</th><th>Amount</th><th>Fee</th><th>Term</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody></tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        <!-- LOAN PRODUCTS -->
+        <div class="tab-pane" id="tab-loanproducts">
+          <div class="panel-body">
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">Loan Products</h3>
+            <p class="muted" style="margin-bottom:18px;">Every loan type clients can apply for. A 5% assessment fee is applied automatically after approval (editable per product).</p>
+            <div style="overflow-x:auto;">
+              <table class="data" id="loanProductsTable">
+                <thead><tr><th>Product</th><th>Min</th><th>Max</th><th>Rate</th><th>Term</th><th>Fee</th><th>Active</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:24px 0;" />
+            <h4 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;" id="loanProductFormTitle">Add Loan Product</h4>
+            <input type="hidden" id="lpId" />
+            <div class="form-row">
+              <div class="form-group"><label>Product Name</label><input type="text" id="lpName" placeholder="e.g. Personal Loan" /></div>
+              <div class="form-group"><label>Icon (emoji)</label><input type="text" id="lpIcon" placeholder="🏦" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Min Amount (£)</label><input type="number" id="lpMin" placeholder="1000" /></div>
+              <div class="form-group"><label>Max Amount (£)</label><input type="number" id="lpMax" placeholder="50000" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Rate Range</label><input type="text" id="lpRate" placeholder="5.9%–12.5% APR" /></div>
+              <div class="form-group"><label>Assessment Fee (%)</label><input type="number" id="lpFee" placeholder="5" step="0.1" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Min Term (months)</label><input type="number" id="lpTermMin" placeholder="12" /></div>
+              <div class="form-group"><label>Max Term (months)</label><input type="number" id="lpTermMax" placeholder="84" /></div>
+            </div>
+            <div class="form-group"><label>Description</label><input type="text" id="lpDesc" placeholder="Short description shown to clients" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Sort Order</label><input type="number" id="lpSort" placeholder="0" /></div>
+              <div class="form-group"><label style="display:flex;align-items:center;gap:8px;margin-top:26px;"><input type="checkbox" id="lpActive" checked /> Active (visible to clients)</label></div>
+            </div>
+            <button class="btn btn-gold" onclick="saveLoanProduct()">Save Loan Product</button>
+            <button class="btn btn-outline-dark" onclick="resetLoanProductForm()">Clear</button>
+            <div class="alert success" id="lpOk" style="margin-top:14px;"></div>
+          </div>
+        </div>
+
+        <!-- DEPOSIT METHODS -->
+        <div class="tab-pane" id="tab-depositmethods">
+          <div class="panel-body">
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">Deposit Methods</h3>
+            <p class="muted" style="margin-bottom:18px;">Every funding option clients can choose from — bank, card, crypto, wallets and more. Add or edit to match the options available in each country.</p>
+            <div style="overflow-x:auto;">
+              <table class="data" id="depositMethodsTable">
+                <thead><tr><th>Method</th><th>Category</th><th>Details</th><th>Min</th><th>Active</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:24px 0;" />
+            <h4 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;" id="depositMethodFormTitle">Add Deposit Method</h4>
+            <input type="hidden" id="dmId" />
+            <div class="form-row">
+              <div class="form-group"><label>Method Name</label><input type="text" id="dmName" placeholder="e.g. Faster Payments" /></div>
+              <div class="form-group"><label>Icon (emoji)</label><input type="text" id="dmIcon" placeholder="💳" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Category</label>
+                <select id="dmCategory"><option>Bank</option><option>Card</option><option>Crypto</option><option>Wallet</option><option>Voucher</option><option>Cash</option><option>Other</option></select>
+              </div>
+              <div class="form-group"><label>Min Amount (£)</label><input type="number" id="dmMin" placeholder="100" /></div>
+            </div>
+            <div class="form-group"><label>Details (what the client needs)</label><input type="text" id="dmDetails" placeholder="Sort Code / Account Number / IBAN" /></div>
+            <div class="form-group"><label>Instructions</label><input type="text" id="dmInstructions" placeholder="How to complete this deposit" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Sort Order</label><input type="number" id="dmSort" placeholder="0" /></div>
+              <div class="form-group"><label style="display:flex;align-items:center;gap:8px;margin-top:26px;"><input type="checkbox" id="dmActive" checked /> Active (visible to clients)</label></div>
+            </div>
+            <button class="btn btn-gold" onclick="saveDepositMethod()">Save Deposit Method</button>
+            <button class="btn btn-outline-dark" onclick="resetDepositMethodForm()">Clear</button>
+            <div class="alert success" id="dmOk" style="margin-top:14px;"></div>
           </div>
         </div>
 
@@ -334,6 +415,35 @@
           <div class="panel-body">
             <p class="muted" style="margin-bottom:16px;">Client support messages. Reply to a thread to send a notification and email to the client.</p>
             <div id="msgList"></div>
+          </div>
+        </div>
+
+        <!-- MESSAGE TEMPLATES -->
+        <div class="tab-pane" id="tab-templates">
+          <div class="panel-body">
+            <p class="muted" style="margin-bottom:16px;">A library of motivational, promotional and encouragement messages. Pick one in the broadcast composer to auto-fill, or add your own. Templates are also available to send from the Broadcast section in Settings.</p>
+            <div class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-bottom:22px;" id="templateGrid"></div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:22px 0;" />
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;" id="tplFormTitle">Add a New Template</h3>
+            <input type="hidden" id="tplId" />
+            <div class="form-row">
+              <div class="form-group"><label>Title / Subject</label><input type="text" id="tplTitle" placeholder="e.g. The Power of Consistency" /></div>
+              <div class="form-group"><label>Type</label>
+                <select id="tplKind"><option value="motivational">🌟 Motivational</option><option value="promotional">🎁 Promotional</option><option value="announcement">📢 Announcement</option><option value="encouragement">💪 Encouragement</option></select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Category</label><input type="text" id="tplCategory" placeholder="e.g. General" /></div>
+              <div class="form-group"><label>Button Label</label><input type="text" id="tplCta" placeholder="Open My Dashboard" /></div>
+            </div>
+            <div class="form-group"><label>Message Body</label><textarea id="tplBody" rows="4" placeholder="Write the message…" style="width:100%;padding:10px 12px;border:1px solid #d7e0ea;border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea></div>
+            <div class="form-row">
+              <div class="form-group"><label>Sort Order</label><input type="number" id="tplSort" placeholder="0" /></div>
+              <div class="form-group"><label>Active</label><select id="tplActive"><option value="1">✅ Active</option><option value="0">❌ Hidden</option></select></div>
+            </div>
+            <button class="btn btn-gold" onclick="saveTemplate()" id="tplSaveBtn">Add Template</button>
+            <button class="btn btn-outline-dark" onclick="resetTemplateForm()" id="tplCancelBtn" style="display:none;">Cancel Edit</button>
+            <div class="alert success" id="tplOk" style="margin-top:14px;"></div>
           </div>
         </div>
 
@@ -367,16 +477,44 @@
             <hr style="border:none;border-top:1px dashed #e6ecf3;margin:22px 0;" />
             <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">Contact Details</h3>
             <p style="color:var(--ink-soft);font-size:13px;margin-bottom:14px;">These appear in the top bar and contact section on every page. Changes go live immediately.</p>
-            <div class="form-group"><label>Phone Number</label><input type="text" id="ctPhone" placeholder="+44 20 7946 0958" /></div>
-            <div class="form-group"><label>Email Address</label><input type="text" id="ctEmail" placeholder="hello@meridianncapital.com" /></div>
-            <div class="form-group"><label>Office Address</label><input type="text" id="ctAddress" placeholder="1 Canada Square, Canary Wharf, London E14 5AB" /></div>
-            <div class="form-group"><label>Opening Hours</label><input type="text" id="ctHours" placeholder="Mon–Fri, 9:00 AM – 5:30 PM" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Contact Name</label><input type="text" id="ctName" placeholder="Ewelina Qachar" /></div>
+              <div class="form-group"><label>Phone Number</label><input type="text" id="ctPhone" placeholder="0120438957" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Mobile Number</label><input type="text" id="ctMobile" placeholder="0120438957" /></div>
+              <div class="form-group"><label>Email Address</label><input type="text" id="ctEmail" placeholder="hello@meridianncapital.com" /></div>
+            </div>
+            <div class="form-group"><label>Office Address</label><input type="text" id="ctAddress" placeholder="356 Lever Edge Lane, Bolton, Greater Manchester, BL3 3BQ" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Opening Hours</label><input type="text" id="ctHours" placeholder="Mon–Fri, 9:00 AM – 5:30 PM" /></div>
+              <div class="form-group"><label>Loan Assessment Fee (%)</label><input type="number" id="ctLoanFee" placeholder="5" step="0.1" /></div>
+            </div>
+            <hr style="border:none;border-top:1px dashed #e6ecf3;margin:22px 0;" />
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">🔐 Crypto-First Deposits</h3>
+            <p style="color:var(--ink-soft);font-size:13px;margin-bottom:14px;">When enabled, every client's <b>first</b> deposit must be made in cryptocurrency. All other funding methods unlock automatically once that first deposit is confirmed. The reason below is shown to clients on their Deposit page.</p>
+            <div class="form-group"><label>Require crypto for first deposit</label>
+              <select id="ctCryptoFirst"><option value="1">✅ Enabled — crypto only for first deposit</option><option value="0">❌ Disabled — all methods always available</option></select>
+            </div>
+            <div class="form-group"><label>Why we prefer crypto (shown to clients)</label>
+              <textarea id="ctCryptoReason" rows="4" placeholder="Explain the security benefits of crypto deposits…" style="width:100%;padding:10px 12px;border:1px solid #d7e0ea;border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+            </div>
             <button class="btn btn-gold" onclick="saveContact()">Save Contact Details</button>
             <div class="alert success" id="ctOk" style="margin-top:14px;"></div>
             <hr style="border:none;border-top:1px dashed #e6ecf3;margin:22px 0;" />
-            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:12px;">Broadcast Notification</h3>
-            <div class="form-group"><label>Title</label><input type="text" id="bcTitle" placeholder="e.g. Scheduled maintenance" /></div>
-            <div class="form-group"><label>Message</label><input type="text" id="bcBody" placeholder="Message shown to all clients" /></div>
+            <h3 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:6px;">Broadcast to All Clients</h3>
+            <p style="color:var(--ink-soft);font-size:13px;margin-bottom:14px;">Send a promotional or motivational message to every active client. It arrives as an in-app notification, on their dashboard, and as an email in the official Meridian Capital template.</p>
+            <div class="form-group"><label>✨ Start from a ready-made template (optional)</label>
+              <select id="bcTemplate" onchange="applyTemplate()"><option value="">— Choose a template to auto-fill —</option></select>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Message Type</label>
+                <select id="bcKind"><option value="promotional">🎁 Promotional</option><option value="motivational">🌟 Motivational</option><option value="announcement">📢 Announcement</option></select>
+              </div>
+              <div class="form-group"><label>Button Label</label><input type="text" id="bcCta" placeholder="Open My Dashboard" /></div>
+            </div>
+            <div class="form-group"><label>Subject / Title</label><input type="text" id="bcTitle" placeholder="e.g. Exclusive bonus this month" /></div>
+            <div class="form-group"><label>Message</label><textarea id="bcBody" rows="4" placeholder="Write your message to all clients…" style="width:100%;padding:10px 12px;border:1px solid #d7e0ea;border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea></div>
             <button class="btn btn-gold" onclick="broadcast()">Send to All Clients</button>
             <div class="alert success" id="bcOk" style="margin-top:14px;"></div>
           </div>
@@ -396,9 +534,9 @@
 
   <script src="../assets/js/translations.js?v=3"></script>
   <script src="../assets/js/app.js?v=3"></script>
-  <script src="../assets/js/api.js?v=1"></script>
+  <script src="../assets/js/api.js?v=2"></script>
   <script>
-    var ADMIN = null, USERS = [], TX = [], LOANS = [], CHATS = [], OUTBOX = [], STATS = {}, WALLETS = [], PLANS = [];
+    var ADMIN = null, USERS = [], TX = [], LOANS = [], CHATS = [], OUTBOX = [], STATS = {}, WALLETS = [], PLANS = [], LOANPRODUCTS = [], DEPOSITMETHODS = [], TEMPLATES = [];
 
     function money(n) { return EV.util.fmtMoney(n, '£'); }
     function esc(s) { return EV.util.esc(s == null ? '' : String(s)); }
@@ -418,7 +556,8 @@
         return Promise.all([
           EV.api.admin.stats(), EV.api.admin.users(), EV.api.admin.transactions(),
           EV.api.admin.loans(), EV.api.admin.chats(), EV.api.admin.outbox(),
-          EV.api.admin.wallets(), EV.api.admin.plans()
+          EV.api.admin.wallets(), EV.api.admin.plans(),
+          EV.api.admin.loanProducts(), EV.api.admin.depositMethods(), EV.api.admin.templates()
         ]);
       }).then(function (res) {
         if (!res) return;
@@ -430,6 +569,9 @@
         OUTBOX = (res[5] && res[5].emails) || [];
         WALLETS = (res[6] && res[6].wallets) || [];
         PLANS = (res[7] && res[7].plans) || [];
+        LOANPRODUCTS = (res[8] && res[8].products) || [];
+        DEPOSITMETHODS = (res[9] && res[9].methods) || [];
+        TEMPLATES = (res[10] && res[10].templates) || [];
         render();
       }).catch(function (ex) {
         if (ex && ex.status === 401) { EV.api.logout(); location.href = 'login.html'; return; }
@@ -460,7 +602,8 @@
       document.getElementById('activityTable').querySelector('tbody').innerHTML = act || '<tr><td colspan="5" class="empty">No activity yet.</td></tr>';
 
       renderUsers(); renderTx(); renderLoans(); renderMessages(); renderOutbox();
-      renderWallets(); renderPlans(); populateGenUsers();
+      renderWallets(); renderPlans(); renderLoanProducts(); renderDepositMethods(); populateGenUsers();
+      renderTemplates(); populateTemplatePicker();
     }
 
     /* ---------- GENERATE ---------- */
@@ -648,6 +791,143 @@
       EV.api.admin.deletePlan(id).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
     }
 
+    /* ---------- LOAN PRODUCTS ---------- */
+    function renderLoanProducts() {
+      var rows = LOANPRODUCTS.map(function (p) {
+        return '<tr>' +
+          '<td><b>' + esc(p.icon || '') + ' ' + esc(p.name) + '</b><div class="mini">' + esc(p.description || '') + '</div></td>' +
+          '<td>' + money(p.min_amount) + '</td>' +
+          '<td>' + (p.max_amount ? money(p.max_amount) : 'No limit') + '</td>' +
+          '<td>' + esc(p.rate || '') + '</td>' +
+          '<td>' + (p.term_min || 0) + '\u2013' + (p.term_max || 0) + ' mo</td>' +
+          '<td>' + (p.fee_percent != null ? p.fee_percent : 5) + '%</td>' +
+          '<td>' + (p.active ? '<span class="pill ok">Active</span>' : '<span class="pill bad">Hidden</span>') + '</td>' +
+          '<td><div class="row-actions">' +
+            '<button class="btn btn-primary btn-xs" onclick="editLoanProduct(\'' + p.id + '\')">Edit</button>' +
+            '<button class="btn btn-outline-dark btn-xs" onclick="toggleLoanProduct(\'' + p.id + '\')">' + (p.active ? 'Hide' : 'Show') + '</button>' +
+            '<button class="btn btn-danger btn-xs" onclick="deleteLoanProduct(\'' + p.id + '\')">Delete</button>' +
+          '</div></td></tr>';
+      }).join('');
+      document.getElementById('loanProductsTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="8" class="empty">No loan products yet.</td></tr>';
+    }
+    function loanProductById(id) { for (var i = 0; i < LOANPRODUCTS.length; i++) if (String(LOANPRODUCTS[i].id) === String(id)) return LOANPRODUCTS[i]; return null; }
+    function editLoanProduct(id) {
+      var p = loanProductById(id); if (!p) return;
+      document.getElementById('lpId').value = p.id;
+      document.getElementById('lpName').value = p.name || '';
+      document.getElementById('lpIcon').value = p.icon || '';
+      document.getElementById('lpMin').value = p.min_amount || '';
+      document.getElementById('lpMax').value = p.max_amount || '';
+      document.getElementById('lpRate').value = p.rate || '';
+      document.getElementById('lpFee').value = (p.fee_percent != null ? p.fee_percent : 5);
+      document.getElementById('lpTermMin').value = p.term_min || '';
+      document.getElementById('lpTermMax').value = p.term_max || '';
+      document.getElementById('lpDesc').value = p.description || '';
+      document.getElementById('lpSort').value = p.sort_order || 0;
+      document.getElementById('lpActive').checked = !!p.active;
+      document.getElementById('loanProductFormTitle').textContent = 'Edit Loan Product #' + p.id;
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+    function resetLoanProductForm() {
+      ['lpId','lpName','lpIcon','lpMin','lpMax','lpRate','lpFee','lpTermMin','lpTermMax','lpDesc','lpSort'].forEach(function (id) { document.getElementById(id).value = ''; });
+      document.getElementById('lpActive').checked = true;
+      document.getElementById('loanProductFormTitle').textContent = 'Add Loan Product';
+    }
+    function saveLoanProduct() {
+      var ok = document.getElementById('lpOk'); ok.classList.remove('show');
+      var id = document.getElementById('lpId').value;
+      var payload = {
+        name: document.getElementById('lpName').value.trim(),
+        icon: document.getElementById('lpIcon').value.trim() || '\ud83c\udfe6',
+        min_amount: parseFloat(document.getElementById('lpMin').value) || 0,
+        max_amount: parseFloat(document.getElementById('lpMax').value) || 0,
+        rate: document.getElementById('lpRate').value.trim(),
+        fee_percent: parseFloat(document.getElementById('lpFee').value) || 5,
+        term_min: parseInt(document.getElementById('lpTermMin').value, 10) || 12,
+        term_max: parseInt(document.getElementById('lpTermMax').value, 10) || 84,
+        description: document.getElementById('lpDesc').value.trim(),
+        sort_order: parseInt(document.getElementById('lpSort').value, 10) || 0,
+        active: document.getElementById('lpActive').checked
+      };
+      if (!payload.name) { ok.className = 'alert error show'; ok.textContent = 'Product name is required.'; return; }
+      var p = id ? EV.api.admin.updateLoanProduct(id, payload) : EV.api.admin.addLoanProduct(payload);
+      p.then(function (r) { ok.className = 'alert success show'; ok.textContent = (r && r.message) || 'Saved.'; resetLoanProductForm(); load(); })
+       .catch(function (ex) { ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Failed'; });
+    }
+    function toggleLoanProduct(id) {
+      var p = loanProductById(id); if (!p) return;
+      EV.api.admin.updateLoanProduct(id, { active: !p.active }).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+    function deleteLoanProduct(id) {
+      if (!confirm('Delete this loan product? Clients will no longer see it.')) return;
+      EV.api.admin.deleteLoanProduct(id).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+
+    /* ---------- DEPOSIT METHODS ---------- */
+    function renderDepositMethods() {
+      var rows = DEPOSITMETHODS.map(function (m) {
+        return '<tr>' +
+          '<td><b>' + esc(m.icon || '') + ' ' + esc(m.name) + '</b></td>' +
+          '<td>' + esc(m.category || '') + '</td>' +
+          '<td class="mini" style="max-width:320px;">' + esc(m.details || '') + '</td>' +
+          '<td>' + money(m.min_amount) + '</td>' +
+          '<td>' + (m.active ? '<span class="pill ok">Active</span>' : '<span class="pill bad">Hidden</span>') + '</td>' +
+          '<td><div class="row-actions">' +
+            '<button class="btn btn-primary btn-xs" onclick="editDepositMethod(\'' + m.id + '\')">Edit</button>' +
+            '<button class="btn btn-outline-dark btn-xs" onclick="toggleDepositMethod(\'' + m.id + '\')">' + (m.active ? 'Hide' : 'Show') + '</button>' +
+            '<button class="btn btn-danger btn-xs" onclick="deleteDepositMethod(\'' + m.id + '\')">Delete</button>' +
+          '</div></td></tr>';
+      }).join('');
+      document.getElementById('depositMethodsTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="6" class="empty">No deposit methods yet.</td></tr>';
+    }
+    function depositMethodById(id) { for (var i = 0; i < DEPOSITMETHODS.length; i++) if (String(DEPOSITMETHODS[i].id) === String(id)) return DEPOSITMETHODS[i]; return null; }
+    function editDepositMethod(id) {
+      var m = depositMethodById(id); if (!m) return;
+      document.getElementById('dmId').value = m.id;
+      document.getElementById('dmName').value = m.name || '';
+      document.getElementById('dmIcon').value = m.icon || '';
+      document.getElementById('dmCategory').value = m.category || 'Bank';
+      document.getElementById('dmMin').value = m.min_amount || '';
+      document.getElementById('dmDetails').value = m.details || '';
+      document.getElementById('dmInstructions').value = m.instructions || '';
+      document.getElementById('dmSort').value = m.sort_order || 0;
+      document.getElementById('dmActive').checked = !!m.active;
+      document.getElementById('depositMethodFormTitle').textContent = 'Edit Deposit Method #' + m.id;
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+    function resetDepositMethodForm() {
+      ['dmId','dmName','dmIcon','dmMin','dmDetails','dmInstructions','dmSort'].forEach(function (id) { document.getElementById(id).value = ''; });
+      document.getElementById('dmCategory').value = 'Bank';
+      document.getElementById('dmActive').checked = true;
+      document.getElementById('depositMethodFormTitle').textContent = 'Add Deposit Method';
+    }
+    function saveDepositMethod() {
+      var ok = document.getElementById('dmOk'); ok.classList.remove('show');
+      var id = document.getElementById('dmId').value;
+      var payload = {
+        name: document.getElementById('dmName').value.trim(),
+        icon: document.getElementById('dmIcon').value.trim() || '\ud83d\udcb3',
+        category: document.getElementById('dmCategory').value,
+        min_amount: parseFloat(document.getElementById('dmMin').value) || 0,
+        details: document.getElementById('dmDetails').value.trim(),
+        instructions: document.getElementById('dmInstructions').value.trim(),
+        sort_order: parseInt(document.getElementById('dmSort').value, 10) || 0,
+        active: document.getElementById('dmActive').checked
+      };
+      if (!payload.name) { ok.className = 'alert error show'; ok.textContent = 'Method name is required.'; return; }
+      var p = id ? EV.api.admin.updateDepositMethod(id, payload) : EV.api.admin.addDepositMethod(payload);
+      p.then(function (r) { ok.className = 'alert success show'; ok.textContent = (r && r.message) || 'Saved.'; resetDepositMethodForm(); load(); })
+       .catch(function (ex) { ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Failed'; });
+    }
+    function toggleDepositMethod(id) {
+      var m = depositMethodById(id); if (!m) return;
+      EV.api.admin.updateDepositMethod(id, { active: !m.active }).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+    function deleteDepositMethod(id) {
+      if (!confirm('Delete this deposit method? Clients will no longer see it.')) return;
+      EV.api.admin.deleteDepositMethod(id).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+
     /* ---------- USERS ---------- */
     function renderUsers() {
       var q = (document.getElementById('userSearch').value || '').toLowerCase();
@@ -670,6 +950,7 @@
           '<td>' + pill(u.kyc) + '</td>' +
           '<td>' + pill(u.status) + '</td>' +
           '<td><div class="row-actions">' +
+            (u.status !== 'active' ? '<button class="btn btn-gold btn-xs" onclick="approveUser(\'' + u.id + '\')">✔ Approve</button>' : '') +
             '<button class="btn btn-primary btn-xs" onclick="viewUser(\'' + u.id + '\')">View</button>' +
             '<button class="btn btn-outline-dark btn-xs" onclick="toggleKyc(\'' + u.id + '\')">KYC</button>' +
             '<button class="btn btn-outline-dark btn-xs" onclick="toggleStatus(\'' + u.id + '\')">' + (u.status === 'active' ? 'Suspend' : 'Activate') + '</button>' +
@@ -714,6 +995,15 @@
         .then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
     }
 
+    function approveUser(id) {
+      var u = userById(id); if (!u) return;
+      if (!confirm('Approve ' + u.name + '?\n\nThis will:\n• Activate the account\n• Mark KYC as verified\n• Assign official account details (if missing)\n• Credit the sign-up bonus (if not yet received)\n• Email the client their official account details')) return;
+      EV.api.admin.approveUser(id).then(function (r) {
+        alert((r && r.message) || 'Client approved.');
+        load();
+      }).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+    }
+
     /* ---------- TRANSACTIONS ---------- */
     function renderTx() {
       var q = (document.getElementById('txSearch').value || '').toLowerCase();
@@ -729,7 +1019,7 @@
         return true;
       });
       var rows = tx.map(function (t) {
-        return '<tr>' +
+        return '<tr class="tx-row" style="cursor:pointer;" onclick="openReceipt(\'' + t.id + '\')">' +
           '<td>' + EV.util.fmtDate(t.created_at) + '</td>' +
           '<td>' + esc(userName(t.user_id)) + '</td>' +
           '<td>' + esc(t.type) + '</td>' +
@@ -737,7 +1027,8 @@
             (t.admin_note ? '<div style="color:#c0392b;margin-top:3px;"><strong>Reason:</strong> ' + esc(t.admin_note) + '</div>' : '') + '</td>' +
           '<td>' + money(t.amount) + '</td>' +
           '<td>' + pill(t.status) + '</td>' +
-          '<td><div class="row-actions">' +
+          '<td><div class="row-actions" onclick="event.stopPropagation();">' +
+            '<button class="btn btn-outline-dark btn-xs" onclick="openReceipt(\'' + t.id + '\')">🧾 Receipt</button>' +
             (t.status === 'pending'
               ? '<button class="btn btn-primary btn-xs" onclick="approveTx(\'' + t.id + '\')">Approve</button><button class="btn btn-danger btn-xs" onclick="declineTx(\'' + t.id + '\')">Decline</button>'
               : '<button class="btn btn-outline-dark btn-xs" onclick="reverseTx(\'' + t.id + '\')">Reverse</button>') +
@@ -747,6 +1038,7 @@
     }
 
     function approveTx(id) { EV.api.admin.approveTx(id).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); }); }
+    function openReceipt(id) { window.open('../receipt.html?id=' + id, '_blank'); }
 
     /* ---------- REASON MODAL (reverse / decline) ---------- */
     var _reasonAction = null, _reasonId = null;
@@ -799,6 +1091,7 @@
           '<td>' + esc(userName(l.user_id)) + '</td>' +
           '<td>' + esc(l.product) + '</td>' +
           '<td>' + money(l.amount) + '</td>' +
+          '<td>' + (l.fee ? money(l.fee) : '—') + '</td>' +
           '<td>' + l.term + ' mo</td>' +
           '<td>' + pill(l.status) + '</td>' +
           '<td><div class="row-actions">' +
@@ -807,31 +1100,77 @@
               : '—') +
           '</div></td></tr>';
       }).join('');
-      document.getElementById('loansTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="7" class="empty">No loan applications match your filters.</td></tr>';
+      document.getElementById('loansTable').querySelector('tbody').innerHTML = rows || '<tr><td colspan="8" class="empty">No loan applications match your filters.</td></tr>';
     }
 
     function approveLoan(id) { EV.api.admin.approveLoan(id).then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); }); }
     function declineLoan(id) { var r = prompt('Reason for declining (optional):', ''); EV.api.admin.declineLoan(id, r || '').then(load).catch(function (ex) { alert((ex && ex.message) || 'Failed'); }); }
 
     /* ---------- MESSAGES ---------- */
+    var OPEN_CHAT = null;
     function renderMessages() {
       var html = CHATS.map(function (c) {
-        return '<div style="margin-bottom:22px;">' +
-          '<h4 style="font-family:var(--font-head);color:var(--brand-dark);margin-bottom:10px;">' + esc(c.full_name) +
-          ' <span class="mini">(' + esc(c.email) + ') · ' + (c.total || 0) + ' messages' + (c.unread ? ' · <b>' + c.unread + ' unread</b>' : '') + '</span></h4>' +
-          '<div class="msg-thread"><div class="head"><span>Latest</span><span>' + esc(c.last_message || '') + '</span></div></div>' +
-          '<div class="msg-thread"><div class="reply"><input type="text" id="reply-' + c.user_id + '" placeholder="Type a reply…" /><button class="btn btn-primary btn-sm" onclick="replyMsg(\'' + c.user_id + '\')">Send</button></div></div>' +
-          '</div>';
+        var open = String(OPEN_CHAT) === String(c.user_id);
+        return '<div class="chat-card' + (open ? ' open' : '') + '" style="margin-bottom:18px;border:1px solid #e6ecf3;border-radius:14px;overflow:hidden;">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:#f7fafd;cursor:pointer;" onclick="toggleChat(\'' + c.user_id + '\')">' +
+            '<div><b style="font-family:var(--font-head);color:var(--brand-dark);">' + esc(c.full_name) + '</b>' +
+            '<div class="mini">' + esc(c.email) + ' \u00b7 ' + (c.total || 0) + ' messages' + (c.unread ? ' \u00b7 <b style="color:#c0392b;">' + c.unread + ' unread</b>' : '') + '</div></div>' +
+            '<div style="display:flex;align-items:center;gap:10px;">' +
+              (c.online ? '<span class="pill ok">Online</span>' : '<span class="pill">Offline</span>') +
+              '<button class="btn btn-outline-dark btn-xs">' + (open ? 'Close' : 'Open') + '</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="chat-body" id="chat-body-' + c.user_id + '" style="display:' + (open ? 'block' : 'none') + ';padding:16px;">' +
+            (open ? '<div class="mini">Loading conversation\u2026</div>' : '') +
+          '</div>' +
+        '</div>';
       }).join('');
       document.getElementById('msgList').innerHTML = html || '<div class="empty">No client messages yet.</div>';
+      if (OPEN_CHAT) loadChatThread(OPEN_CHAT);
+    }
+
+    function toggleChat(uid) {
+      OPEN_CHAT = (String(OPEN_CHAT) === String(uid)) ? null : uid;
+      renderMessages();
+    }
+
+    function loadChatThread(uid) {
+      var box = document.getElementById('chat-body-' + uid);
+      if (!box) return;
+      EV.api.admin.chat(uid).then(function (r) {
+        var msgs = (r && r.messages) || [];
+        var thread = msgs.map(function (m) {
+          var mine = m.sender === 'admin';
+          var att = '';
+          if (m.has_attachment) {
+            var url = '/api/admin/chats/' + m.id + '/attachment?token=' + encodeURIComponent(EV.api.token());
+            att = '<div style="margin-top:8px;">' +
+              '<a href="' + url + '" target="_blank"><img src="' + url + '" alt="attachment" style="max-width:220px;max-height:220px;border-radius:10px;border:1px solid #e6ecf3;display:block;" /></a>' +
+              '<a class="btn btn-outline-dark btn-xs" style="margin-top:6px;" href="' + url + '" download="' + esc(m.attachment_name || 'attachment') + '">\u2b07 Download ' + esc(m.attachment_name || 'image') + '</a>' +
+            '</div>';
+          }
+          return '<div style="display:flex;justify-content:flex-start;margin-bottom:10px;">' +
+            '<div style="max-width:78%;background:' + (mine ? '#0E4C92' : '#f1f5f9') + ';color:' + (mine ? '#fff' : '#1A2733') + ';padding:10px 13px;border-radius:12px;">' +
+              '<div style="font-size:11px;opacity:.75;margin-bottom:3px;">' + (mine ? 'Support' : esc((r.user && r.user.fullName) || 'Client')) + ' \u00b7 ' + EV.util.fmtDateTime(m.created_at) + '</div>' +
+              (m.body ? '<div style="font-size:14px;white-space:pre-wrap;">' + esc(m.body) + '</div>' : '') + att +
+            '</div></div>';
+        }).join('');
+        box.innerHTML = (thread || '<div class="mini">No messages.</div>') +
+          '<div style="display:flex;gap:8px;margin-top:12px;">' +
+            '<input type="text" id="reply-' + uid + '" placeholder="Type a reply\u2026" style="flex:1;padding:10px 12px;border:1px solid #d7e0ea;border-radius:10px;font-family:inherit;" />' +
+            '<button class="btn btn-primary btn-sm" onclick="replyMsg(\'' + uid + '\')">Send</button>' +
+          '</div>';
+      }).catch(function (ex) {
+        box.innerHTML = '<div class="alert error show">' + esc((ex && ex.message) || 'Could not load conversation.') + '</div>';
+      });
     }
 
     function replyMsg(uid) {
       var el = document.getElementById('reply-' + uid);
+      if (!el) return;
       var body = el.value.trim(); if (!body) return;
-      EV.api.admin.reply(uid, body).then(function () { el.value = ''; load(); }).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
+      EV.api.admin.reply(uid, body).then(function () { el.value = ''; loadChatThread(uid); load(); }).catch(function (ex) { alert((ex && ex.message) || 'Failed'); });
     }
-
     /* ---------- OUTBOX ---------- */
     function renderOutbox() {
       var rows = OUTBOX.map(function (m) {
@@ -844,10 +1183,12 @@
     function broadcast() {
       var t = document.getElementById('bcTitle').value.trim();
       var b = document.getElementById('bcBody').value.trim();
+      var kind = document.getElementById('bcKind').value;
+      var cta = document.getElementById('bcCta').value.trim();
       var ok = document.getElementById('bcOk');
       ok.classList.remove('show');
       if (!t || !b) { ok.className = 'alert error show'; ok.textContent = 'Enter both a title and a message.'; return; }
-      EV.api.admin.broadcast(t, b).then(function (r) {
+      EV.api.admin.broadcast(t, b, kind, cta).then(function (r) {
         ok.className = 'alert success show';
         ok.textContent = (r && r.message) || 'Broadcast sent.';
         document.getElementById('bcTitle').value = ''; document.getElementById('bcBody').value = '';
@@ -860,20 +1201,30 @@
     function loadContact() {
       EV.api.admin.settings().then(function (r) {
         var s = (r && r.settings) || {};
+        document.getElementById('ctName').value = s.contact_name || '';
         document.getElementById('ctPhone').value = s.contact_phone || '';
+        document.getElementById('ctMobile').value = s.contact_mobile || '';
         document.getElementById('ctEmail').value = s.contact_email || '';
         document.getElementById('ctAddress').value = s.contact_address || '';
         document.getElementById('ctHours').value = s.contact_hours || '';
+        document.getElementById('ctLoanFee').value = (s.loan_fee_percent != null ? s.loan_fee_percent : '5');
+        document.getElementById('ctCryptoFirst').value = (s.crypto_first === '0' ? '0' : '1');
+        document.getElementById('ctCryptoReason').value = s.crypto_first_reason || '';
       }).catch(function () {});
     }
     function saveContact() {
       var ok = document.getElementById('ctOk');
       ok.classList.remove('show');
       var payload = {
+        contact_name: document.getElementById('ctName').value.trim(),
         contact_phone: document.getElementById('ctPhone').value.trim(),
+        contact_mobile: document.getElementById('ctMobile').value.trim(),
         contact_email: document.getElementById('ctEmail').value.trim(),
         contact_address: document.getElementById('ctAddress').value.trim(),
-        contact_hours: document.getElementById('ctHours').value.trim()
+        contact_hours: document.getElementById('ctHours').value.trim(),
+        loan_fee_percent: document.getElementById('ctLoanFee').value.trim(),
+        crypto_first: document.getElementById('ctCryptoFirst').value,
+        crypto_first_reason: document.getElementById('ctCryptoReason').value.trim()
       };
       EV.api.admin.saveSettings(payload).then(function (r) {
         ok.className = 'alert success show';
@@ -881,12 +1232,138 @@
         /* refresh the live topbar/contact values on this page immediately */
         try { localStorage.removeItem('meridian_capital_site'); } catch (e) {}
         if (window.EV_SITE) window.EV_SITE.contact = {
-          phone: payload.contact_phone, email: payload.contact_email,
-          address: payload.contact_address, hours: payload.contact_hours
+          name: payload.contact_name, phone: payload.contact_phone, mobile: payload.contact_mobile,
+          email: payload.contact_email, address: payload.contact_address, hours: payload.contact_hours
         };
       }).catch(function (ex) {
         ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Could not save.';
       });
+    }
+
+    /* ---------- MESSAGE TEMPLATES ---------- */
+    function renderTemplates() {
+      var grid = document.getElementById('templateGrid');
+      if (!grid) return;
+      var kindIcon = { motivational: '🌟', promotional: '🎁', announcement: '📢', encouragement: '💪' };
+      grid.innerHTML = TEMPLATES.map(function (t) {
+        return '<div class="dash-card" style="text-align:left;padding:18px;' + (t.active ? '' : 'opacity:.55;') + '">' +
+          '<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;">' +
+          '<div style="font-family:var(--font-head);color:var(--brand-dark);font-size:15px;font-weight:700;">' + (kindIcon[t.kind] || '📝') + ' ' + esc(t.title) + '</div>' +
+          '<span class="pill ' + (t.active ? 'ok' : 'warn') + '">' + (t.active ? 'Active' : 'Hidden') + '</span></div>' +
+          '<div class="mini" style="margin:4px 0 8px;">' + esc(t.kind) + ' · ' + esc(t.category || 'General') + '</div>' +
+          '<div style="font-size:12.5px;color:var(--ink-soft);line-height:1.6;max-height:96px;overflow:hidden;">' + esc(t.body) + '</div>' +
+          '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">' +
+          '<button class="btn btn-primary btn-xs" onclick="useTemplate(\'' + t.id + '\')">📤 Use in Broadcast</button>' +
+          '<button class="btn btn-outline-dark btn-xs" onclick="editTemplate(\'' + t.id + '\')">Edit</button>' +
+          '<button class="btn btn-danger btn-xs" onclick="deleteTemplate(\'' + t.id + '\')">Delete</button>' +
+          '</div></div>';
+      }).join('') || '<div class="empty">No templates yet. Add one below.</div>';
+    }
+
+    function populateTemplatePicker() {
+      var sel = document.getElementById('bcTemplate');
+      if (!sel) return;
+      var cur = sel.value;
+      sel.innerHTML = '<option value="">— Choose a template to auto-fill —</option>' +
+        TEMPLATES.filter(function (t) { return t.active; }).map(function (t) {
+          return '<option value="' + t.id + '">' + esc(t.title) + ' (' + esc(t.kind) + ')</option>';
+        }).join('');
+      sel.value = cur;
+    }
+
+    function applyTemplate() {
+      var id = document.getElementById('bcTemplate').value;
+      if (!id) return;
+      var t = null;
+      for (var i = 0; i < TEMPLATES.length; i++) if (String(TEMPLATES[i].id) === String(id)) t = TEMPLATES[i];
+      if (!t) return;
+      document.getElementById('bcTitle').value = t.title;
+      document.getElementById('bcBody').value = t.body;
+      document.getElementById('bcKind').value = (t.kind === 'encouragement' ? 'motivational' : t.kind);
+      document.getElementById('bcCta').value = t.cta_label || 'Open My Dashboard';
+    }
+
+    function useTemplate(id) {
+      var t = null;
+      for (var i = 0; i < TEMPLATES.length; i++) if (String(TEMPLATES[i].id) === String(id)) t = TEMPLATES[i];
+      if (!t) return;
+      document.getElementById('bcTitle').value = t.title;
+      document.getElementById('bcBody').value = t.body;
+      document.getElementById('bcKind').value = (t.kind === 'encouragement' ? 'motivational' : t.kind);
+      document.getElementById('bcCta').value = t.cta_label || 'Open My Dashboard';
+      document.getElementById('bcTemplate').value = t.id;
+      /* jump to the Settings tab where the broadcast composer lives */
+      var btn = document.querySelector('#tabs button[data-tab="settings"]');
+      if (btn) btn.click();
+      var ok = document.getElementById('bcOk');
+      ok.className = 'alert success show'; ok.textContent = 'Template loaded — review and press "Send to All Clients".';
+    }
+
+    function resetTemplateForm() {
+      document.getElementById('tplId').value = '';
+      document.getElementById('tplTitle').value = '';
+      document.getElementById('tplBody').value = '';
+      document.getElementById('tplKind').value = 'motivational';
+      document.getElementById('tplCategory').value = '';
+      document.getElementById('tplCta').value = '';
+      document.getElementById('tplSort').value = '';
+      document.getElementById('tplActive').value = '1';
+      document.getElementById('tplFormTitle').textContent = 'Add a New Template';
+      document.getElementById('tplSaveBtn').textContent = 'Add Template';
+      document.getElementById('tplCancelBtn').style.display = 'none';
+    }
+
+    function editTemplate(id) {
+      var t = null;
+      for (var i = 0; i < TEMPLATES.length; i++) if (String(TEMPLATES[i].id) === String(id)) t = TEMPLATES[i];
+      if (!t) return;
+      document.getElementById('tplId').value = t.id;
+      document.getElementById('tplTitle').value = t.title;
+      document.getElementById('tplBody').value = t.body;
+      document.getElementById('tplKind').value = t.kind;
+      document.getElementById('tplCategory').value = t.category || '';
+      document.getElementById('tplCta').value = t.cta_label || '';
+      document.getElementById('tplSort').value = t.sort_order || 0;
+      document.getElementById('tplActive').value = t.active ? '1' : '0';
+      document.getElementById('tplFormTitle').textContent = 'Edit Template';
+      document.getElementById('tplSaveBtn').textContent = 'Save Changes';
+      document.getElementById('tplCancelBtn').style.display = 'inline-block';
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function saveTemplate() {
+      var ok = document.getElementById('tplOk');
+      ok.classList.remove('show');
+      var id = document.getElementById('tplId').value;
+      var payload = {
+        title: document.getElementById('tplTitle').value.trim(),
+        body: document.getElementById('tplBody').value.trim(),
+        kind: document.getElementById('tplKind').value,
+        category: document.getElementById('tplCategory').value.trim(),
+        cta_label: document.getElementById('tplCta').value.trim(),
+        sort_order: parseInt(document.getElementById('tplSort').value, 10) || 0,
+        active: document.getElementById('tplActive').value === '1' ? 1 : 0
+      };
+      if (!payload.title || !payload.body) { ok.className = 'alert error show'; ok.textContent = 'Title and message body are required.'; return; }
+      var p = id ? EV.api.admin.updateTemplate(id, payload) : EV.api.admin.addTemplate(payload);
+      p.then(function (r) {
+        ok.className = 'alert success show'; ok.textContent = (r && r.message) || 'Template saved.';
+        resetTemplateForm();
+        return EV.api.admin.templates();
+      }).then(function (r) {
+        TEMPLATES = (r && r.templates) || [];
+        renderTemplates(); populateTemplatePicker();
+      }).catch(function (ex) { ok.className = 'alert error show'; ok.textContent = (ex && ex.message) || 'Could not save template.'; });
+    }
+
+    function deleteTemplate(id) {
+      if (!confirm('Delete this template? This cannot be undone.')) return;
+      EV.api.admin.deleteTemplate(id).then(function () {
+        return EV.api.admin.templates();
+      }).then(function (r) {
+        TEMPLATES = (r && r.templates) || [];
+        renderTemplates(); populateTemplatePicker();
+      }).catch(function (ex) { alert((ex && ex.message) || 'Could not delete template.'); });
     }
 
     /* ---------- TOOLS ---------- */
@@ -910,7 +1387,7 @@
 
     load();
   </script>
-<script src="../assets/js/site.js?v=1"></script>
+<script src="../assets/js/site.js?v=2"></script>
 
   <!-- ============ REASON MODAL (reverse / decline) ============ -->
   <div class="ev-modal-overlay" id="reasonModal" style="display:none;">
